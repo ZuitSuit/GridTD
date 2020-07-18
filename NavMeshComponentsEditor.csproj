@@ -63,13 +63,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\NavMeshComponents\Editor\NavMeshAssetManager.cs" />
-    <Compile Include="Assets\NavMeshComponents\Editor\NavMeshComponentsGUIUtility.cs" />
-    <Compile Include="Assets\NavMeshComponents\Editor\NavMeshLinkEditor.cs" />
-    <Compile Include="Assets\NavMeshComponents\Editor\NavMeshModifierEditor.cs" />
-    <Compile Include="Assets\NavMeshComponents\Editor\NavMeshModifierVolumeEditor.cs" />
-    <Compile Include="Assets\NavMeshComponents\Editor\NavMeshSurfaceEditor.cs" />
-    <None Include="Assets\NavMeshComponents\Editor\NavMeshComponentsEditor.asmdef" />
+    <Compile Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshAssetManager.cs" />
+    <Compile Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshComponentsGUIUtility.cs" />
+    <Compile Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshLinkEditor.cs" />
+    <Compile Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshModifierEditor.cs" />
+    <Compile Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshModifierVolumeEditor.cs" />
+    <Compile Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshSurfaceEditor.cs" />
+    <None Include="Assets\Scripts\NavMeshComponents\Editor\NavMeshComponentsEditor.asmdef" />
     <Reference Include="UnityEngine">
       <HintPath>E:/Program Files/Unity/2019.4.1f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
     </Reference>
