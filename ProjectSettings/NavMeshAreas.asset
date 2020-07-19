@@ -13,8 +13,8 @@ NavMeshProjectSettings:
     cost: 2
   - name: Swamp
     cost: 3
-  - name: 
-    cost: 1
+  - name: Water
+    cost: 6
   - name: 
     cost: 1
   - name: 

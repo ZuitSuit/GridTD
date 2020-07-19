@@ -40,8 +40,9 @@ public abstract class Tower : Fighter
     }
 
     // Update is called once per frame
-    protected virtual void Update()
+    protected override void Update()
     {
+        base.Update();
         timeFromLastTarget += Time.deltaTime;
         timeSinceLastShot += Time.deltaTime;
 
@@ -65,9 +66,9 @@ public abstract class Tower : Fighter
         }
     }
 
-    public virtual void Die(bool sell)
+    override public void Die(bool money = false)
     {
-        if (sell)
+        if (money)
         {
             //TODO refund % of price 
         }
@@ -170,17 +171,18 @@ public abstract class Tower : Fighter
     {
         //show the object that it is seen by a tower
         //add to objects in range
-        if (other.gameObject.tag == "Enemy") 
-        {
-            other.gameObject.GetComponentInChildren<Enemy>().ToggleTowerVisibility(gridReference, true);
-            enemiesInRange.Add(other.gameObject);
-        }
 
-        if (other.gameObject.tag == "Tower") 
+        switch (other.gameObject.tag) 
         {
-            other.gameObject.GetComponentInChildren<Tower>().ToggleTowerVisibility(gridReference, true);
-            towersInRange.Add(other.gameObject);
-        } 
+            case "Enemy":
+                other.gameObject.GetComponentInChildren<Enemy>().ToggleTowerVisibility(gridReference, true);
+                enemiesInRange.Add(other.gameObject);
+                break;
+            case "Tower":
+                other.gameObject.GetComponentInChildren<Tower>().ToggleTowerVisibility(gridReference, true);
+                towersInRange.Add(other.gameObject);
+                break;
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -188,20 +190,18 @@ public abstract class Tower : Fighter
         //show the object that it has left the tower range
         //remove object from available targets
 
-        if (other.gameObject.tag == "Enemy")
+        switch (other.gameObject.tag)
         {
-            other.gameObject.GetComponentInChildren<Enemy>().ToggleTowerVisibility(gridReference, false);
-            enemiesInRange.Remove(other.gameObject);
-            if (currentTarget == other.gameObject) Retarget();
+            case "Enemy":
+                other.gameObject.GetComponentInChildren<Enemy>().ToggleTowerVisibility(gridReference, false);
+                enemiesInRange.Remove(other.gameObject);
+                if (currentTarget == other.gameObject) Retarget();
+                break;
+            case "Tower":
+                other.gameObject.GetComponentInChildren<Tower>().ToggleTowerVisibility(gridReference, false);
+                towersInRange.Remove(other.gameObject);
+                if (currentTarget == other.gameObject) Retarget();
+                break;
         }
-
-        if (other.gameObject.tag == "Tower")
-        {
-            other.gameObject.GetComponentInChildren<Tower>().ToggleTowerVisibility(gridReference, false);
-            towersInRange.Remove(other.gameObject);
-            if (currentTarget == other.gameObject) Retarget();
-        }
-
-        
     }
 }

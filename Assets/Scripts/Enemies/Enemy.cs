@@ -64,8 +64,15 @@ public class Enemy : Fighter
     }
     
     //TODO param to spawn gibs?
-    public override void  Die()
+    public override void  Die(bool money = true)
     {
+        //move back to spawn
+        //doesn't clear the cell on which it died
+        if (money)
+        {
+            //give cash
+            //GameStateInstance.AddMoney(compensationAmount);
+        }
         //tell the towers it's in range of that it's no longer a valid target
         GridManager.Instance.RemoveTarget(gameObject, visibleByTowers, true);
 
@@ -78,8 +85,9 @@ public class Enemy : Fighter
     }
 
     // Update is called once per frame
-    void Update()
+    protected override void Update()
     {
+        base.Update();
         //TODO rework this mb?
         _pathCheckTimer -= Time.deltaTime;
         if(_pathCheckTimer < 0)

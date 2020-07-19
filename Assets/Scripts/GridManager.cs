@@ -30,10 +30,12 @@ public class GridManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        
     }
 
     void Start()
     {
+
         int gridX = 10;
         int gridZ = 10;
 
@@ -91,6 +93,9 @@ public class GridManager : MonoBehaviour
                         tower.transform.SetParent(TowerParent);
                         tower.transform.position = hit.collider.transform.position;
                         tower.GetComponentInChildren<Tower>().Place(cellController.GetGridReference());
+
+                        //StatusEffects.Instance.Apply(tower.GetComponentInChildren<Tower>(), StatusTypes.Bleed);
+
                         GridTowers[cellController.GetGridReference()] = tower;
                         cellController.ToggleBuild(false);
 

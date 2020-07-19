@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System.Runtime.Serialization;
 
 public abstract class Fighter : MonoBehaviour
 {
@@ -28,10 +29,16 @@ public abstract class Fighter : MonoBehaviour
 
     protected float distanceToDestination = 0f;
 
+    //status effects
+    protected List<StatusEffect> statusEffects = new List<StatusEffect>();
+    StatusEffect effectBuffer = null;
+    int statusEffectIndex = 0;
+
+
     /*    public float[] damageValues = new float[Enum.GetNames(typeof(DamageTypes)).Length];
         public float[] resistanceValues = new float[Enum.GetNames(typeof(DamageTypes)).Length];*/
 
-    [EnumArray(typeof(DamageTypes), 1, "Damage Resistances" , (int)DamageTypes.Heal, -1.0f)]
+    [EnumArray(typeof(DamageTypes), 1, "Damage Resistances", (int)DamageTypes.True, 1.0f)]
     public ValuesContainer _damageResistances;
 
 
@@ -59,6 +66,23 @@ public abstract class Fighter : MonoBehaviour
         //ResetStats();
     }
 
+    protected virtual void Update()
+    {
+        if (statusEffects.Count > 0)
+        {
+            
+            if (!statusEffects[statusEffectIndex].Tick())
+            {
+                statusEffects.RemoveAt(statusEffectIndex);
+            }
+            else
+            {
+                statusEffectIndex++;
+            }
+            if (statusEffectIndex >= statusEffects.Count) statusEffectIndex = 0;
+        }
+    }
+
     public virtual void ResetStats()
     {
         currentHealth = maxHealth;
@@ -82,7 +106,17 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void GetDamaged(float amount, bool heal = false)
     {
-        //trigger health change event
+        foreach (StatusEffect effect in statusEffects)
+        {
+            if (effect.GetType() == typeof(BufferStatus))
+            {
+                effect.TickDown(1);
+
+                return;
+            }
+
+        }
+
         HealthChanged(heal);
 
         if (heal)
@@ -100,7 +134,7 @@ public abstract class Fighter : MonoBehaviour
         }
     }
 
-    public virtual void Die()
+    public virtual void Die(bool money = false)
     {
         gameObject.SetActive(false);
         //overriden for tower and enemy, enqueues towers/enemies and signals the towers
@@ -165,6 +199,51 @@ public abstract class Fighter : MonoBehaviour
 
         return 0f;
     }
+
+    public virtual List<StatusEffect> GetStatusEffects()
+    {
+        return statusEffects;
+    }
+    public virtual int GetStatusStacks<T>() where T : StatusEffect
+    {
+        foreach (StatusEffect effect in statusEffects)
+        {
+            if (effect.GetType() == typeof(T)) return effect.GetTicks();
+        }
+
+        return 0;
+    }
+
+    //setters
+    public virtual void AddStatusEffect<T>(int amount) where T:StatusEffect
+    {
+        effectBuffer = null;
+        foreach (StatusEffect effect in statusEffects)
+        {
+            if (effect.GetType() == typeof(T)) effectBuffer = effect;
+        }
+
+        if(effectBuffer == null)
+        {
+            effectBuffer = (StatusEffect)FormatterServices.GetUninitializedObject(typeof(T));
+            effectBuffer.Init(this, amount);
+            statusEffects.Add(effectBuffer);
+        } 
+        else
+        {
+            effectBuffer.TickUp(amount);
+        }
+    }
+    public virtual void RemoveStatusEffect<T>(int amount) where T : StatusEffect
+    {
+        foreach (StatusEffect effect in statusEffects)
+        {
+            if (effect.GetType() == typeof(T))
+            {
+                effect.TickDown(amount);
+            }
+        }
+    }
 }
 
 public enum FighterTypes
@@ -198,7 +277,7 @@ public enum DamageTypes
     Ice,
     Mental,
     Poison,
-    Heal
+    True
 }
 
 public class DamageMatrix : ScriptableObject
