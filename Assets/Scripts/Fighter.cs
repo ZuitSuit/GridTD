@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using System.Runtime.Serialization;
+using UnityEngine.UI;
 
 public abstract class Fighter : MonoBehaviour
 {
     protected float currentHealth;
-    protected float maxHealth = 100f;
+    protected float maxHealth = 10f; //default HP value
     protected GameObject currentTarget;
     public SphereCollider range;
 
@@ -15,8 +16,7 @@ public abstract class Fighter : MonoBehaviour
     protected float radiusDefault = 1f;
     protected float shotCooldown = 5f; //time between shots
     protected float timeSinceLastShot = 0f;
-
-    protected float damage = 20f;
+    protected bool onCooldown = false;
 
     protected List<GameObject> enemiesInRange = new List<GameObject>();
     protected List<GameObject> towersInRange = new List<GameObject>();
@@ -35,19 +35,23 @@ public abstract class Fighter : MonoBehaviour
     int statusEffectIndex = 0;
 
 
-    /*    public float[] damageValues = new float[Enum.GetNames(typeof(DamageTypes)).Length];
-        public float[] resistanceValues = new float[Enum.GetNames(typeof(DamageTypes)).Length];*/
+    protected float damageAmount = 0;
+    protected DamageMatrix damageMatrixBase; //before items and effects
+    protected DamageMatrix damageMatrix; //after items and effects
 
     [EnumArray(typeof(DamageTypes), 1, "Damage Resistances", (int)DamageTypes.True, 1.0f)]
-    public ValuesContainer _damageResistances;
-
-
-
+    public ValuesContainer damageResistances;
     [EnumArray(typeof(DamageTypes), 0, "Damage Attack", (int)DamageTypes.PhysicalBlunt, 1.0f)]
-    public ValuesContainer _damageAttack;
+    public ValuesContainer damageAttack;
+
+
+    //UI
+    public Image HPfill;
+    public Image CDfill; 
 
     protected virtual void Awake()
     {
+        
         ResetStats();
     }
 
@@ -63,11 +67,18 @@ public abstract class Fighter : MonoBehaviour
 
     protected virtual void OnDisable()
     {
-        //ResetStats();
     }
 
     protected virtual void Update()
     {
+        //attacks if off cooldown and has targets in sight
+        if (timeSinceLastShot > shotCooldown && currentTarget != null && currentTarget.activeInHierarchy)
+        {
+            Attack();
+            timeSinceLastShot = 0;
+        }
+
+        //checks and executes status effects
         if (statusEffects.Count > 0)
         {
             
@@ -81,30 +92,51 @@ public abstract class Fighter : MonoBehaviour
             }
             if (statusEffectIndex >= statusEffects.Count) statusEffectIndex = 0;
         }
+
+
+    }
+
+    public virtual void Attack()
+    {
+        switch (attackType)
+        {
+            case AttackTypes.AoE:
+                foreach (GameObject target in GetCurrentTargets())
+                {
+                    Damage(target);
+                }
+                break;
+            case AttackTypes.RandomTarget:
+            case AttackTypes.SingleTarget:
+                Damage(currentTarget);
+                break;
+        }
     }
 
     public virtual void ResetStats()
     {
+        timeSinceLastShot = shotCooldown; //fighter starts with no cooldown
+        damageMatrix = new DamageMatrix(damageAttack.Values, damageResistances.Values);
+
         currentHealth = maxHealth;
         enemiesInRange = new List<GameObject>();
         towersInRange = new List<GameObject>();
         visibleByTowers = new List<int>();
 
-        //reset status effects
-        //reset upgrades etc
+        statusEffects = new List<StatusEffect>();
     }
 
-    public virtual void Damage(GameObject target, float amount, bool heal = false) 
+    public virtual void Damage(GameObject target, bool heal = false) 
     {
-        if(target.GetComponentInChildren<Fighter>() != null && target.activeInHierarchy) target.GetComponentInChildren<Fighter>().GetDamaged(amount, heal);
+        if(target.GetComponentInChildren<Fighter>() != null && target.activeInHierarchy) target.GetComponentInChildren<Fighter>().GetDamaged(damageMatrix, heal);
     }
 
-    public virtual void Heal(GameObject target, float amount)
+    public virtual void Heal(GameObject target)
     {
-        Damage(target, amount, true);
+        Damage(target, true);
     }
 
-    public virtual void GetDamaged(float amount, bool heal = false)
+    public virtual void GetDamaged(DamageMatrix attackMatrix, bool heal = false)
     {
         foreach (StatusEffect effect in statusEffects)
         {
@@ -117,17 +149,19 @@ public abstract class Fighter : MonoBehaviour
 
         }
 
+        //foreach attack matrix type of damage that is not 0 - trigger the effect mb?
+        damageAmount = attackMatrix.CalcualateDamage(attackMatrix);
         HealthChanged(heal);
 
         if (heal)
         {
-            currentHealth = Mathf.Clamp(currentHealth + amount, currentHealth, maxHealth); //can't heal for negative amount or over max health
+            currentHealth = Mathf.Clamp(currentHealth + damageAmount, currentHealth, maxHealth); //can't heal for negative amount or over max health
             return;
             //overheal status effect?
         }
 
         //calculated resistances and all that nonsense here
-        currentHealth -= amount;
+        currentHealth -= damageAmount;
         if (currentHealth <= 0)
         {
             Die();
@@ -142,7 +176,12 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void HealthChanged(bool positive)
     {
-        //TODO  event that triggers on any health change
+        UpdateHealthUI();
+    }
+
+    public virtual void UpdateHealthUI()
+    {
+
     }
 
     public virtual void ToggleTowerVisibility(int reference, bool toggle = true)
@@ -280,16 +319,36 @@ public enum DamageTypes
     True
 }
 
-public class DamageMatrix : ScriptableObject
+public class DamageMatrix
 {
-    Dictionary<DamageTypes, float> _damageMatrix = new Dictionary<DamageTypes, float>();
-    public DamageMatrix(float[] damageModifiers)
+    public Dictionary<DamageTypes, float> attackMatrix = new Dictionary<DamageTypes, float>();
+    public Dictionary<DamageTypes, float> defenseMatrix = new Dictionary<DamageTypes, float>();
+    float calucalatedDamage = 0;
+
+    public DamageMatrix(float[] attackModifiers, float[] defenseModifiers)
     {
         foreach (DamageTypes type in System.Enum.GetValues(typeof(DamageTypes)))
         {
-            _damageMatrix[type] = damageModifiers[(int)type];
+            attackMatrix[type] = attackModifiers[(int)type];
+            defenseMatrix[type] = defenseModifiers[(int)type];
         }
     }
+
+    public Dictionary<DamageTypes, float> GetAttackMatrix() { return attackMatrix;}
+    public Dictionary<DamageTypes, float> GetDefenseMatrix() { return defenseMatrix; }
+
+    public float CalcualateDamage(DamageMatrix attacker)
+    {
+        calucalatedDamage = 0;
+
+        foreach (DamageTypes type in System.Enum.GetValues(typeof(DamageTypes)))
+        {
+            calucalatedDamage +=  attacker.attackMatrix[type] * defenseMatrix[type];
+        }
+
+        return calucalatedDamage;
+    }
+
 }
 
 [System.Serializable]

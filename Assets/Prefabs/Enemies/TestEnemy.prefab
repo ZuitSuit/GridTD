@@ -132,7 +132,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   range: {fileID: 0}
-  _damageResistances:
+  damageResistances:
     Values:
     - 1
     - 1
@@ -142,8 +142,8 @@ MonoBehaviour:
     - 1
     - 1
     - 1
-    - -1
-  _damageAttack:
+    - 1
+  damageAttack:
     Values:
     - 1
     - 0

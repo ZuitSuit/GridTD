@@ -23,14 +23,13 @@ public abstract class Tower : Fighter
     protected override void Awake()
     {
         base.Awake();
+
+        //default tower settings
         targetType = FighterTypes.Enemy;
         attackType = AttackTypes.SingleTarget;
 
         radiusDefault = range.radius;
         range.radius *= radius;
-
-        timeSinceLastShot = shotCooldown;
-
         turret.LookAt(Vector3.zero);
     }
 
@@ -58,12 +57,6 @@ public abstract class Tower : Fighter
                 Retarget();
             }
         }
-
-        if(timeSinceLastShot > shotCooldown && currentTarget != null && currentTarget.activeInHierarchy)
-        {
-            Attack();
-            timeSinceLastShot = 0;
-        }
     }
 
     override public void Die(bool money = false)
@@ -78,22 +71,7 @@ public abstract class Tower : Fighter
         towerParent.SetActive(false);
     }
 
-    public virtual void Attack()
-    {
-        switch (attackType)
-        {
-            case AttackTypes.AoE:
-                foreach(GameObject target in GetCurrentTargets())
-                {
-                    Damage(target, damage);
-                }
-                break;
-            case AttackTypes.RandomTarget:
-            case AttackTypes.SingleTarget:
-                Damage(currentTarget, damage);
-                break;
-        }
-    }
+
 
     public virtual void Retarget()
     {
