@@ -93,7 +93,7 @@ public class GridManager : MonoBehaviour
                         tower.transform.SetParent(TowerParent);
                         tower.transform.position = hit.collider.transform.position;
                         tower.GetComponentInChildren<Tower>().Place(cellController.GetGridReference());
-
+                        //tower.GetComponentInChildren<Fighter>().SpawnCheck();
                         //StatusEffects.Instance.Apply(tower.GetComponentInChildren<Tower>(), StatusTypes.Bleed);
 
                         GridTowers[cellController.GetGridReference()] = tower;
@@ -138,6 +138,10 @@ public class GridManager : MonoBehaviour
         GameObject testEnemy = Instantiate(enemyPrefab);
         testEnemy.transform.SetParent(EnemyParent);
         testEnemy.SetActive(true);
+        //testEnemy.GetComponentInChildren<Fighter>().SpawnCheck();
+
+        testEnemy.GetComponent<CapsuleCollider>().enabled = false;
+        testEnemy.GetComponent<CapsuleCollider>().enabled = true;
         StartCoroutine(EnemySpawn());
     }
 

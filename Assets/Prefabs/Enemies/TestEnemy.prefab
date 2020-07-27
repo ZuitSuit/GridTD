@@ -9,19 +9,20 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1004073885087342027}
+  - component: {fileID: 1004073885087342026}
   - component: {fileID: 1004073885087342024}
   - component: {fileID: 1004073885087342025}
   - component: {fileID: 1004073885087342006}
   - component: {fileID: 1004073885087342007}
-  - component: {fileID: 1004073885087342026}
-  - component: {fileID: -7237584568498421525}
-  m_Layer: 0
+  - component: {fileID: 6109523045142933466}
+  - component: {fileID: 4285241807673574342}
+  m_Layer: 2
   m_Name: TestEnemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1004073885087342027
 Transform:
   m_ObjectHideFlags: 0
@@ -36,6 +37,45 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1004073885087342026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1004073885087342004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05640ed0cd329104989f3da6a80e2d30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  range: {fileID: 6109523045142933466}
+  damageResistances:
+    Values:
+    - 0.1
+    - 1
+    - 1
+    - 1
+    - 1
+    - 1
+    - 1
+    - 1
+    - 1
+  damageAttack:
+    Values:
+    - 1
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+  turret: {fileID: 0}
+  HPfill: {fileID: 0}
+  CDfill: {fileID: 0}
+  agent: {fileID: 1004073885087342007}
 --- !u!33 &1004073885087342024
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -119,43 +159,20 @@ NavMeshAgent:
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
---- !u!114 &1004073885087342026
-MonoBehaviour:
+--- !u!135 &6109523045142933466
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1004073885087342004}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05640ed0cd329104989f3da6a80e2d30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  range: {fileID: 0}
-  damageResistances:
-    Values:
-    - 1
-    - 1
-    - 1
-    - 1
-    - 1
-    - 1
-    - 1
-    - 1
-    - 1
-  damageAttack:
-    Values:
-    - 1
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-    - 0
-  agent: {fileID: 1004073885087342007}
---- !u!54 &-7237584568498421525
+  serializedVersion: 2
+  m_Radius: 10
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &4285241807673574342
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

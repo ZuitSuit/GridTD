@@ -26,7 +26,7 @@ public class CellController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        //check if object has tag enemy, add it to db
+        if (other.isTrigger) return;
         if (other.GetComponentInChildren<Enemy>() != null)
         {
             Enemy enemy = other.GetComponentInChildren<Enemy>();
@@ -37,6 +37,7 @@ public class CellController : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
+        if (other.isTrigger) return;
         if (other.GetComponentInChildren<Enemy>() != null)
         {
             enemies.Remove(other.gameObject);

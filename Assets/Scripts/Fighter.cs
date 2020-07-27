@@ -9,23 +9,21 @@ public abstract class Fighter : MonoBehaviour
 {
     protected float currentHealth;
     protected float maxHealth = 10f; //default HP value
+    protected float price; // tower price or enemy payout
     protected GameObject currentTarget;
-    public SphereCollider range;
-
-    protected float radius = 1f; //range in units
-    protected float radiusDefault = 1f;
+    public SphereCollider range; //collider used for tracking visible targets
+    protected float fighterRange = 20f; //range of the fighter after recalculations
+    protected float fighterRangeDefault = 1f; //degault range of a fighter
     protected float shotCooldown = 5f; //time between shots
-    protected float timeSinceLastShot = 0f;
+    protected float timeFromLastShot = 0f;
+    protected float timeFromLastTarget = 0f;
     protected bool onCooldown = false;
 
-    protected List<GameObject> enemiesInRange = new List<GameObject>();
-    protected List<GameObject> towersInRange = new List<GameObject>();
-
-    protected FighterTypes targetType;
+    //protected FighterTypes targetType;
     protected TargetingModes targetingMode = TargetingModes.Closest;
     protected AttackTypes attackType;
-
-    protected List<int> visibleByTowers = new List<int>();
+    protected System.Type targetType;
+    protected System.Type fighterType;
 
     protected float distanceToDestination = 0f;
 
@@ -34,7 +32,7 @@ public abstract class Fighter : MonoBehaviour
     StatusEffect effectBuffer = null;
     int statusEffectIndex = 0;
 
-
+    //damage variables
     protected float damageAmount = 0;
     protected DamageMatrix damageMatrixBase; //before items and effects
     protected DamageMatrix damageMatrix; //after items and effects
@@ -44,20 +42,35 @@ public abstract class Fighter : MonoBehaviour
     [EnumArray(typeof(DamageTypes), 0, "Damage Attack", (int)DamageTypes.PhysicalBlunt, 1.0f)]
     public ValuesContainer damageAttack;
 
+    //targeting variables
+    GameObject potentialTarget;
+    float comparisonValue;
+    float comparisonValueCheck;
+    bool firstComparison = false;
+    bool comparisonMore = true;
+    protected List<GameObject> targetsBuffer;
+    public Transform turret;
+    protected float rotationSpeed = 0.02f;
+    protected Fighter fighterBuffer;
+    protected Renderer fighterRendererBuffer;
+    protected string fighterClassBuffer;
+
+    protected Dictionary<string, List<GameObject>> targetsInRange = new Dictionary<string, List<GameObject>>();
+    protected Dictionary<int, Fighter> visbleByFighters = new Dictionary<int, Fighter>();
 
     //UI
     public Image HPfill;
-    public Image CDfill; 
+    public Image CDfill;
 
     protected virtual void Awake()
     {
-        
+
         ResetStats();
     }
 
     protected virtual void Start()
     {
-        
+
     }
 
     protected virtual void OnEnable()
@@ -71,17 +84,44 @@ public abstract class Fighter : MonoBehaviour
 
     protected virtual void Update()
     {
+        if (onCooldown == true)
+        {
+            timeFromLastShot += Time.deltaTime;
+            UpdateCooldownUI();
+            onCooldown = !(timeFromLastShot > shotCooldown);
+        }
+
         //attacks if off cooldown and has targets in sight
-        if (timeSinceLastShot > shotCooldown && currentTarget != null && currentTarget.activeInHierarchy)
+        if (!onCooldown && currentTarget != null && currentTarget.activeInHierarchy)
         {
             Attack();
-            timeSinceLastShot = 0;
+            timeFromLastShot = 0;
+            timeFromLastTarget = 0;
+            onCooldown = true;
+        }
+
+        timeFromLastTarget += Time.deltaTime;
+
+
+        if (attackType != AttackTypes.AoE)
+        {
+            if (currentTarget != null && currentTarget.activeInHierarchy)
+            {
+                if (turret != null)
+                {
+                    turret.transform.localRotation =
+                        Quaternion.Slerp(turret.transform.localRotation, Quaternion.LookRotation(currentTarget.transform.position - turret.transform.position), rotationSpeed * timeFromLastTarget);
+                }
+            }
+            else
+            {
+                Retarget();
+            }
         }
 
         //checks and executes status effects
         if (statusEffects.Count > 0)
         {
-            
             if (!statusEffects[statusEffectIndex].Tick())
             {
                 statusEffects.RemoveAt(statusEffectIndex);
@@ -92,36 +132,196 @@ public abstract class Fighter : MonoBehaviour
             }
             if (statusEffectIndex >= statusEffects.Count) statusEffectIndex = 0;
         }
-
-
     }
 
-    public virtual void Attack()
+    protected virtual void OnTriggerEnter(Collider other)
+    {
+        if (other.isTrigger) return;
+        fighterBuffer = other.gameObject.GetComponentInChildren<Fighter>();
+        if (fighterBuffer == null) return;
+
+        RegisterVisible(fighterBuffer, true);
+    }
+
+    protected virtual void OnTriggerExit(Collider other)
+    {
+        if (other.isTrigger) return;
+        fighterBuffer = other.gameObject.GetComponentInChildren<Fighter>();
+        if (fighterBuffer == null) return;
+
+        RegisterVisible(fighterBuffer, false);
+    }
+
+    public virtual bool RegisterVisible(Fighter fighter, bool toggle = true)
+    {
+        //show the object that it is seen by a tower
+        //add to objects in range
+
+        fighterClassBuffer = fighter.GetFighterType().ToString();
+        if (toggle)
+        {
+            if (!targetsInRange.ContainsKey(fighterClassBuffer)) targetsInRange.Add(fighterClassBuffer, new List<GameObject>());
+            targetsInRange[fighterClassBuffer].Add(fighter.gameObject);
+            fighter.ToggleVisibleBy(this, true);
+            
+            return true;
+        }
+
+        if (fighter.gameObject == currentTarget) currentTarget = null;
+        fighter.ToggleVisibleBy(this, false);
+        return targetsInRange[fighterClassBuffer].Remove(fighter.gameObject);
+    }
+    
+    public virtual void ToggleVisibleBy(Fighter fighter, bool toggle = true)
+    {
+        int fighterID = fighter.gameObject.GetInstanceID();
+        if (visbleByFighters.ContainsKey(fighterID))
+        {
+            if (!toggle)
+            {
+                visbleByFighters.Remove(fighterID);
+            }
+        }
+        else if (toggle)
+        {
+            visbleByFighters.Add(fighterID, fighter);
+        }
+    }
+
+    public virtual void RemoveTarget(Fighter fighter)
+    {
+        if (currentTarget == fighter.gameObject) currentTarget = null;
+        if (targetsInRange.ContainsKey(fighter.GetFighterType().ToString())) targetsInRange[fighter.GetFighterType().ToString()].Remove(fighter.gameObject);
+    }
+
+    public virtual void SpawnCheck()
+    {
+        //updates fighter vision on spawn - triggers ontrigger enter events from inside the trigger
+        //sphere 1 - who sees me
+        fighterRendererBuffer = null;
+
+        //check if there are fighter vision zones in range, add this fighter to their knowledge base
+        fighterRendererBuffer = gameObject.GetComponent<Renderer>();
+        if(fighterRendererBuffer != null)
+        {
+            if(Physics.CheckBox(fighterRendererBuffer.bounds.center, fighterRendererBuffer.bounds.extents))
+            {
+                Collider[] colliders = Physics.OverlapBox(fighterRendererBuffer.bounds.center, fighterRendererBuffer.bounds.extents);
+                foreach (Collider other in colliders)
+                {
+                    if (other.isTrigger)
+                    {
+                        fighterBuffer = null;
+                        fighterBuffer = other.GetComponentInChildren<Fighter>();
+                        if (fighterBuffer != null) 
+                        {
+                            fighterBuffer.RegisterVisible(this, true);
+                        }
+                        
+                    }
+                }
+            }
+        }
+
+        if (Physics.CheckSphere(gameObject.transform.position, fighterRange))
+        {
+            Collider[] colliders = Physics.OverlapSphere(gameObject.transform.position, fighterRange);
+            foreach (Collider other in colliders)
+            {
+                if (!other.isTrigger)
+                {
+                    fighterBuffer = null;
+                    fighterBuffer = other.GetComponentInChildren<Fighter>();
+                    if (fighterBuffer != null) RegisterVisible(fighterBuffer, true);
+                }
+            }
+        }
+    }
+
+
+    protected virtual void Attack()
     {
         switch (attackType)
         {
             case AttackTypes.AoE:
-                foreach (GameObject target in GetCurrentTargets())
+                foreach (GameObject target in targetsInRange[targetType.ToString()])
                 {
                     Damage(target);
                 }
                 break;
             case AttackTypes.RandomTarget:
+                Damage(currentTarget);
+
+                currentTarget = null;
+                break;
             case AttackTypes.SingleTarget:
+                
                 Damage(currentTarget);
                 break;
         }
     }
 
+    public virtual void Retarget()
+    {
+
+        currentTarget = null;
+        //random targeting
+        if (attackType == AttackTypes.RandomTarget)
+        {
+            if (!targetsInRange.ContainsKey(targetType.ToString())) return;
+
+            targetsBuffer = targetsInRange[targetType.ToString()];
+            currentTarget = targetsBuffer.Count == 0 ? null : targetsBuffer[Random.Range(0, targetsBuffer.Count)];
+            return;
+        }
+
+        if (targetsInRange.ContainsKey(targetType.ToString()) && targetsInRange[targetType.ToString()].Count != 0)
+        {
+            firstComparison = true;
+            foreach (GameObject possibleTarget in targetsInRange[targetType.ToString()])
+            {
+                switch (targetingMode)
+                {
+                    case TargetingModes.Closest:
+                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetDistance();
+                        comparisonMore = true; //TODO remove from this place?
+                        break;
+                    case TargetingModes.Fastest:
+                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetSpeed();
+                        comparisonMore = true;
+                        break;
+                    case TargetingModes.MostHP:
+                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetHealth();
+                        comparisonMore = true;
+                        break;
+                    case TargetingModes.LeastHP:
+                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetHealth();
+                        comparisonMore = false;
+                        break;
+                }
+
+                if (firstComparison || (comparisonMore ? (comparisonValueCheck > comparisonValue) : (comparisonValueCheck < comparisonValue)))
+                {
+                    potentialTarget = possibleTarget;
+                    comparisonValue = comparisonValueCheck;
+                }
+            }
+
+            //TODO choses the same target twice
+
+            timeFromLastTarget = 0;
+            firstComparison = false;
+            currentTarget = potentialTarget;
+        }
+    }
+
     public virtual void ResetStats()
     {
-        timeSinceLastShot = shotCooldown; //fighter starts with no cooldown
+        timeFromLastShot = shotCooldown; //fighter starts with no cooldown
         damageMatrix = new DamageMatrix(damageAttack.Values, damageResistances.Values);
 
         currentHealth = maxHealth;
-        enemiesInRange = new List<GameObject>();
-        towersInRange = new List<GameObject>();
-        visibleByTowers = new List<int>();
+        targetsInRange = new Dictionary<string, List<GameObject>>();
 
         statusEffects = new List<StatusEffect>();
     }
@@ -138,6 +338,7 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void GetDamaged(DamageMatrix attackMatrix, bool heal = false)
     {
+
         foreach (StatusEffect effect in statusEffects)
         {
             if (effect.GetType() == typeof(BufferStatus))
@@ -170,7 +371,12 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void Die(bool money = false)
     {
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
+        foreach(Fighter fighter in visbleByFighters.Values)
+        {
+            fighter.RemoveTarget(this);
+        }
+
         //overriden for tower and enemy, enqueues towers/enemies and signals the towers
     }
 
@@ -181,40 +387,23 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void UpdateHealthUI()
     {
-
+        if (HPfill != null) { HPfill.fillAmount = Mathf.Clamp(currentHealth / maxHealth, 0, 1f);  }
     }
 
-    public virtual void ToggleTowerVisibility(int reference, bool toggle = true)
+    public virtual void UpdateCooldownUI()
     {
-        if (toggle)
-        {
-            visibleByTowers.Add(reference);
-            return;
-        }
-        visibleByTowers.Remove(reference);
+        if (CDfill != null) { CDfill.fillAmount = Mathf.Clamp(timeFromLastShot / shotCooldown, 0, 1f); }
     }
-
 
     //getters
-
+    public virtual System.Type GetFighterType()
+    {
+        return fighterType;
+    }
     public virtual float GetHealth()
     {
         return currentHealth;
     }
-
-    public virtual List<GameObject> GetCurrentTargets()
-    {
-        switch (targetType)
-        {
-            case FighterTypes.Enemy:
-                return enemiesInRange;
-            case FighterTypes.Tower:
-                return towersInRange;
-            default:
-                return null;
-        }
-    }
-
 
     public virtual float GetDistance()
     {
@@ -254,6 +443,9 @@ public abstract class Fighter : MonoBehaviour
     }
 
     //setters
+    public virtual void SetTargetingMode(TargetingModes m) { targetingMode = m; }
+    public virtual void SetAttackType(AttackTypes t) {attackType = t; }
+
     public virtual void AddStatusEffect<T>(int amount) where T:StatusEffect
     {
         effectBuffer = null;
@@ -283,12 +475,6 @@ public abstract class Fighter : MonoBehaviour
             }
         }
     }
-}
-
-public enum FighterTypes
-{
-    Tower,
-    Enemy
 }
 
 public enum TargetingModes

@@ -7,20 +7,22 @@ using UnityEngine.AI;
 public class Enemy : Fighter
 {
     public NavMeshAgent agent;
-    Transform _destination;
-    Transform _spawn;
+    Transform destination;
+    Transform spawn;
 
     float defaultSpeed;
 
-    bool _isBerserk = false;
-    float _pathCheckTimer = 2f;
+    bool isBerserk = false;
+    float pathCheckTimer = 2f;
 
     //public Animator animator;
 
     protected override void Awake()
     {
         base.Awake();
-        targetType = FighterTypes.Tower;
+
+        fighterType = typeof(Enemy);
+        targetType = typeof(Tower);
         attackType = AttackTypes.RandomTarget;
         defaultSpeed = agent.speed;
     }
@@ -39,12 +41,12 @@ public class Enemy : Fighter
     protected override void OnEnable()
     {
         base.OnEnable();
-        _isBerserk = false;
+        isBerserk = false;
 
         if (!agent.enabled)
         {
-            _spawn = GridManager.Instance.GetSpawnPoint();
-            agent.Warp(_spawn.position);
+            spawn = GridManager.Instance.GetSpawnPoint();
+            agent.Warp(spawn.position);
             agent.enabled = true;
             SetDestination(GridManager.Instance.GetDestination());
         }
@@ -52,9 +54,17 @@ public class Enemy : Fighter
         agent.isStopped = false;
     }
 
+    protected override void Attack()
+    {
+        if (isBerserk)
+        {
+            base.Attack();
+        }
+    }
+
     public void SetDestination(Transform destination)
     {
-        _destination = destination;
+        this.destination = destination;
         agent.SetDestination(destination.position);
     }
 
@@ -62,10 +72,12 @@ public class Enemy : Fighter
     {
         agent.speed = defaultSpeed / modifier;
     }
-    
+
     //TODO param to spawn gibs?
-    public override void  Die(bool money = true)
+    public override void Die(bool money = true)
     {
+        base.Die();
+        gameObject.SetActive(false);
         //move back to spawn
         //doesn't clear the cell on which it died
         if (money)
@@ -73,10 +85,8 @@ public class Enemy : Fighter
             //give cash
             //GameStateInstance.AddMoney(compensationAmount);
         }
-        //tell the towers it's in range of that it's no longer a valid target
-        GridManager.Instance.RemoveTarget(gameObject, visibleByTowers, true);
+        //tell the towers in range that this is no longer a valid target
 
-        gameObject.SetActive(false);
     }
 
     public bool CheckPath()
@@ -88,20 +98,18 @@ public class Enemy : Fighter
     protected override void Update()
     {
         base.Update();
-        //TODO rework this mb?
-        _pathCheckTimer -= Time.deltaTime;
-        if(_pathCheckTimer < 0)
+
+        pathCheckTimer -= Time.deltaTime;
+        if (pathCheckTimer < 0)
         {
-            _pathCheckTimer = 2f;
-            _isBerserk = !CheckPath();
+            pathCheckTimer = 2f;
+            isBerserk = !CheckPath();
         }
 
         if (!agent.pathPending)
         {
             distanceToDestination = agent.remainingDistance;
         }
-
-
     }
 
 }
