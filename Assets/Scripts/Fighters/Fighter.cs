@@ -70,7 +70,7 @@ public abstract class Fighter : MonoBehaviour
 
     protected virtual void Start()
     {
-
+        
     }
 
     protected virtual void OnEnable()
@@ -398,8 +398,25 @@ public abstract class Fighter : MonoBehaviour
     //getters
     public virtual System.Type GetFighterType()
     {
+        if (fighterType == null) fighterType = GetFighterClass();
         return fighterType;
     }
+
+    public virtual System.Type GetFighterClass()
+    {
+        System.Type typeBuffer = GetType();
+        List<System.Type> inheritanceOrder = new List<System.Type>();
+        while(typeBuffer != null)
+        {
+            inheritanceOrder.Add(typeBuffer);
+            typeBuffer = typeBuffer.BaseType;
+        }
+
+        Debug.Log(inheritanceOrder[Mathf.Clamp(inheritanceOrder.Count - 7, 0, inheritanceOrder.Count-1)]);
+
+        return GetType();
+    }
+
     public virtual float GetHealth()
     {
         return currentHealth;
