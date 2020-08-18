@@ -6,11 +6,9 @@ using UnityEngine.AI;
 
 public class Enemy : Fighter
 {
-    public NavMeshAgent agent;
+    
     Transform destination;
     Transform spawn;
-
-    float defaultSpeed;
 
     bool isBerserk = false;
     float pathCheckTimer = 2f;
@@ -25,11 +23,6 @@ public class Enemy : Fighter
         targetType = typeof(Tower);
         attackType = AttackTypes.RandomTarget;
         defaultSpeed = agent.speed;
-    }
-
-    protected override void Start()
-    {
-        base.Start();
     }
 
     protected override void OnDisable()
@@ -68,10 +61,11 @@ public class Enemy : Fighter
         agent.SetDestination(destination.position);
     }
 
-    public void SetSpeed(float modifier = 1.0f)
+/*    public override void SetSpeed(float modifier)
     {
-        agent.speed = defaultSpeed / modifier;
-    }
+        base.SetSpeed(modifier);
+        
+    }*/
 
     //TODO param to spawn gibs?
     public override void Die(bool money = true)
@@ -102,6 +96,7 @@ public class Enemy : Fighter
         pathCheckTimer -= Time.deltaTime;
         if (pathCheckTimer < 0)
         {
+            
             pathCheckTimer = 2f;
             isBerserk = !CheckPath();
         }

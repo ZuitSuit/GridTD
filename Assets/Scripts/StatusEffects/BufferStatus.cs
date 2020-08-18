@@ -8,7 +8,13 @@ public class BufferStatus : StatusEffect
 
     protected override IEnumerator Action()
     {
-        Debug.Log("buffer thing happened");
+        //is still invulnerable
+        yield return null;
+    }
+
+    protected override IEnumerator OnEnd()
+    {
+        //is vulnerable
         yield return null;
     }
 }

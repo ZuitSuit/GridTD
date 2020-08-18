@@ -18,12 +18,7 @@ public abstract class Tower : Fighter
 
         fighterRangeDefault = range.radius;
         range.radius = fighterRange;
-        turret.LookAt(Vector3.zero);
-    }
-
-    protected override void Start()
-    {
-
+        if(turret != null )turret.LookAt(Vector3.zero);
     }
 
     // Update is called once per frame

@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: CellMoss
+  m_Shader: {fileID: -6465566751694194690, guid: 24601e452b47c0f4ab242ad4a65ceba8,
+    type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _SampleTexture2D_423FB4F2_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 42e42fea7a347e644b539b234ee0516f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_AB182FC_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 383426bba931e574e9b99dcf4f201370, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_B65C8256_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 07a8d27ac40c2cb468edbd49cc8d10da, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_C5E6FB7F_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 6f3ebdfef390b7a49913b076b4347522, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_D9166319_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 7dba9731abcb0ff46bf1ecfaa2e03085, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_EB47430F_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 396c72d3575c5ed44ac60a9f232b6c66, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - WaveAmount: 0.3
+    - _GridProminence: 1
+    m_Colors:
+    - SideColors: {r: 0.18039216, g: 0.18039216, b: 0.18039216, a: 0}
+    - WaveColor: {r: 1, g: 0.9648241, b: 0, a: 0}
+    - _BaseColor: {r: 0.9150943, g: 0.21827938, b: 0, a: 0}

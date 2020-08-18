@@ -9,6 +9,7 @@ public abstract class StatusEffect
     protected int ticks = 0;
     protected float interval = 1.0f;
 
+
     public StatusEffect(Fighter f, int t = 1, float i = 1.0f)
     {
         fighter = f;
@@ -25,22 +26,18 @@ public abstract class StatusEffect
 
     public virtual bool Tick()
     {
-        if (ticks < 0)
+        if (ticks <= 0)
         {
             ticks = 0;
             time = 0;
+            GameState.Instance.StartCoroutine(OnEnd());
             return false;
         }
 
-        if (ticks > 0)
-        {
-            time += Time.deltaTime;
-        }
+        time += Time.deltaTime;
 
         if (time > interval)
         {
-
-            
             GameState.Instance.StartCoroutine(Action());
             ticks--;
             time = 0;
@@ -59,12 +56,19 @@ public abstract class StatusEffect
     }
 
     protected abstract IEnumerator Action();
+    protected abstract IEnumerator OnEnd();
 
     public virtual int GetTicks()
     {
         return ticks;
     }
 
+
+    //setters
+    public virtual void SetFighter(Fighter f)
+    {
+        fighter = f;
+    }
 }
 
 public enum StatusTypes

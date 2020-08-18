@@ -5,9 +5,11 @@ using UnityEngine;
 public class LaserTower : Tower
 {
     // Start is called before the first frame update
-    protected override void Start()
+
+
+    protected override void Awake()
     {
-        //AddStatusEffect<BufferStatus>(10);
+        base.Awake();
     }
 
     // Update is called once per frame

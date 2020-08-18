@@ -9,8 +9,9 @@ public class CellController : MonoBehaviour
     bool canBuild = true;
     int gridReference;
     float speedModifier;
+    Fighter fighterBuffer;
 
-    List<GameObject> enemies = new List<GameObject>();
+    List<GameObject> fighters = new List<GameObject>();
 
     private void Start()
     {
@@ -27,27 +28,29 @@ public class CellController : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.isTrigger) return;
-        if (other.GetComponentInChildren<Enemy>() != null)
+        if (other.GetComponentInChildren<Fighter>() != null)
         {
-            Enemy enemy = other.GetComponentInChildren<Enemy>();
-            enemy.SetSpeed(speedModifier);
-            enemies.Add(other.gameObject);
+            fighterBuffer = other.GetComponentInChildren<Fighter>();
+            fighterBuffer.SetTerrainSpeedModifier(speedModifier);
+            fighterBuffer.RecalculateSpeed();
+            fighters.Add(other.gameObject);
+            
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.isTrigger) return;
-        if (other.GetComponentInChildren<Enemy>() != null)
+        if (other.GetComponentInChildren<Fighter>() != null)
         {
-            enemies.Remove(other.gameObject);
+            fighters.Remove(other.gameObject);
         }
     }
 
     //getters
     public bool CheckBuild()
     {
-        return canBuild && enemies.Count == 0;
+        return canBuild && fighters.Count == 0;
     }
     public int GetGridReference()
     {

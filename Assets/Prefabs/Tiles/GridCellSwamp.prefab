@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8317523937642481950}
   m_Layer: 2
   m_Name: CellController
-  m_TagString: Untagged
+  m_TagString: Cell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -70,6 +70,7 @@ GameObject:
   - component: {fileID: 8740990351138170987}
   - component: {fileID: 3715533262204836971}
   - component: {fileID: 7171292400682817302}
+  - component: {fileID: -4301051287724852954}
   m_Layer: 8
   m_Name: GridCellSwamp
   m_TagString: Cell
@@ -118,7 +119,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9ddfdd5da4711354599daf945d62e08d, type: 2}
+  - {fileID: 2100000, guid: 5eda11e032e571d47adec78f22c3d617, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -168,3 +169,16 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &-4301051287724852954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8740990351138170984}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dde2f48384648941af5cd2799760531, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  controller: {fileID: 1789300255454592564}

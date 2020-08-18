@@ -24,6 +24,12 @@ public class GridManager : MonoBehaviour
 
     Ray ray;
     RaycastHit hit;
+    public LayerMask FighterVision; //to ignore fighter vision when placing/selecting
+    CellController cellController;
+    Fighter fighterBuffer;
+    WhereIs whereIsBuffer;
+
+    Fighter fighterInFocus;
 
     public static GridManager Instance;
 
@@ -68,8 +74,25 @@ public class GridManager : MonoBehaviour
     void Update()
     {
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetButtonDown("Fire") && Physics.Raycast(ray, out hit))
+        if (Input.GetButtonDown("Fire") && Physics.Raycast(ray, out hit, 1000f, FighterVision - 5)) //-1 to invert mask, -4 to ignore raycast
         {
+            //if cell - show build menu
+            if (hit.collider.gameObject.GetComponent<CellManager>() != null)
+            {
+                cellController = hit.collider.gameObject.GetComponent<CellManager>().controller;
+                //TODO controller calls build UI
+            }
+
+            else if (hit.collider.gameObject.GetComponent<WhereIs>() != null)
+            {
+                whereIsBuffer = hit.collider.gameObject.GetComponent<WhereIs>();
+                fighterBuffer = whereIsBuffer.GetFighter();
+                if(fighterInFocus != null) fighterInFocus.ToggleInFocus(false);
+                fighterInFocus = fighterBuffer;
+                fighterBuffer.ToggleInFocus(true);
+                UIManager.Instance.TrackFighter(fighterInFocus, whereIsBuffer);
+            }
+
             //collapse all active menus
             switch (hit.collider.gameObject.tag)
             {
@@ -90,11 +113,10 @@ public class GridManager : MonoBehaviour
                         }
 
                         GameObject tower = Instantiate(TowerPrefab);
-                        tower.transform.SetParent(TowerParent);
+                        //tower.transform.SetParent(TowerParent);
                         tower.transform.position = hit.collider.transform.position;
                         tower.GetComponentInChildren<Tower>().Place(cellController.GetGridReference());
                         //tower.GetComponentInChildren<Fighter>().SpawnCheck();
-                        //StatusEffects.Instance.Apply(tower.GetComponentInChildren<Tower>(), StatusTypes.Bleed);
 
                         GridTowers[cellController.GetGridReference()] = tower;
                         cellController.ToggleBuild(false);
@@ -140,8 +162,8 @@ public class GridManager : MonoBehaviour
         testEnemy.SetActive(true);
         //testEnemy.GetComponentInChildren<Fighter>().SpawnCheck();
 
-        testEnemy.GetComponent<CapsuleCollider>().enabled = false;
-        testEnemy.GetComponent<CapsuleCollider>().enabled = true;
+        testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = false;
+        testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = true;
         StartCoroutine(EnemySpawn());
     }
 

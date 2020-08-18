@@ -29,6 +29,8 @@ public abstract class Fighter : MonoBehaviour
 
     //status effects
     protected List<StatusEffect> statusEffects = new List<StatusEffect>();
+    protected List<StatusEffect> effectsOnHit = new List<StatusEffect>();
+
     StatusEffect effectBuffer = null;
     int statusEffectIndex = 0;
 
@@ -62,15 +64,21 @@ public abstract class Fighter : MonoBehaviour
     public Image HPfill;
     public Image CDfill;
 
+    //movement
+    protected bool isFlying = false;
+    protected float defaultSpeed;
+    protected float terrainSpeedModifier = 1.0f;
+    protected float speedModifier = 1.0f;
+    public NavMeshAgent agent;
+
+    //misc
+    bool inFocus = false;
+    public string fighterName;
+
     protected virtual void Awake()
     {
 
         ResetStats();
-    }
-
-    protected virtual void Start()
-    {
-        
     }
 
     protected virtual void OnEnable()
@@ -84,6 +92,8 @@ public abstract class Fighter : MonoBehaviour
 
     protected virtual void Update()
     {
+
+
         if (onCooldown == true)
         {
             timeFromLastShot += Time.deltaTime;
@@ -92,7 +102,7 @@ public abstract class Fighter : MonoBehaviour
         }
 
         //attacks if off cooldown and has targets in sight
-        if (!onCooldown && currentTarget != null && currentTarget.activeInHierarchy)
+        if (!onCooldown && ((currentTarget != null && currentTarget.activeInHierarchy) || (attackType == AttackTypes.AoE && targetsInRange.ContainsKey(targetType.ToString()) && targetsInRange[targetType.ToString()].Count > 0)))
         {
             Attack();
             timeFromLastShot = 0;
@@ -110,7 +120,7 @@ public abstract class Fighter : MonoBehaviour
                 if (turret != null)
                 {
                     turret.transform.localRotation =
-                        Quaternion.Slerp(turret.transform.localRotation, Quaternion.LookRotation(currentTarget.transform.position - turret.transform.position), rotationSpeed * timeFromLastTarget);
+                        Quaternion.Slerp(turret.transform.localRotation, Quaternion.LookRotation(turret.transform.position - currentTarget.transform.position), rotationSpeed * timeFromLastTarget);
                 }
             }
             else
@@ -137,7 +147,7 @@ public abstract class Fighter : MonoBehaviour
     protected virtual void OnTriggerEnter(Collider other)
     {
         if (other.isTrigger) return;
-        fighterBuffer = other.gameObject.GetComponentInChildren<Fighter>();
+        fighterBuffer = other.gameObject.GetComponent<WhereIs>().GetFighter();
         if (fighterBuffer == null) return;
 
         RegisterVisible(fighterBuffer, true);
@@ -146,7 +156,7 @@ public abstract class Fighter : MonoBehaviour
     protected virtual void OnTriggerExit(Collider other)
     {
         if (other.isTrigger) return;
-        fighterBuffer = other.gameObject.GetComponentInChildren<Fighter>();
+        fighterBuffer = other.gameObject.GetComponent<WhereIs>().GetFighter();
         if (fighterBuffer == null) return;
 
         RegisterVisible(fighterBuffer, false);
@@ -209,16 +219,8 @@ public abstract class Fighter : MonoBehaviour
                 Collider[] colliders = Physics.OverlapBox(fighterRendererBuffer.bounds.center, fighterRendererBuffer.bounds.extents);
                 foreach (Collider other in colliders)
                 {
-                    if (other.isTrigger)
-                    {
-                        fighterBuffer = null;
-                        fighterBuffer = other.GetComponentInChildren<Fighter>();
-                        if (fighterBuffer != null) 
-                        {
-                            fighterBuffer.RegisterVisible(this, true);
-                        }
-                        
-                    }
+                    fighterBuffer = other.GetComponent<WhereIs>().GetFighter();
+                    fighterBuffer.RegisterVisible(this, true);
                 }
             }
         }
@@ -228,12 +230,8 @@ public abstract class Fighter : MonoBehaviour
             Collider[] colliders = Physics.OverlapSphere(gameObject.transform.position, fighterRange);
             foreach (Collider other in colliders)
             {
-                if (!other.isTrigger)
-                {
-                    fighterBuffer = null;
-                    fighterBuffer = other.GetComponentInChildren<Fighter>();
-                    if (fighterBuffer != null) RegisterVisible(fighterBuffer, true);
-                }
+                fighterBuffer = other.GetComponent<WhereIs>().GetFighter();
+                fighterBuffer.RegisterVisible(this, true);
             }
         }
     }
@@ -246,7 +244,7 @@ public abstract class Fighter : MonoBehaviour
             case AttackTypes.AoE:
                 foreach (GameObject target in targetsInRange[targetType.ToString()])
                 {
-                    Damage(target);
+                    if(target.activeInHierarchy) Damage(target);
                 }
                 break;
             case AttackTypes.RandomTarget:
@@ -283,19 +281,19 @@ public abstract class Fighter : MonoBehaviour
                 switch (targetingMode)
                 {
                     case TargetingModes.Closest:
-                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetDistance();
+                        comparisonValueCheck = possibleTarget.GetComponent<Fighter>().GetDistance();
                         comparisonMore = true; //TODO remove from this place?
                         break;
                     case TargetingModes.Fastest:
-                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetSpeed();
+                        comparisonValueCheck = possibleTarget.GetComponent<Fighter>().GetSpeed();
                         comparisonMore = true;
                         break;
                     case TargetingModes.MostHP:
-                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetHealth();
+                        comparisonValueCheck = possibleTarget.GetComponent<Fighter>().GetHealth();
                         comparisonMore = true;
                         break;
                     case TargetingModes.LeastHP:
-                        comparisonValueCheck = possibleTarget.GetComponentInChildren<Fighter>().GetHealth();
+                        comparisonValueCheck = possibleTarget.GetComponent<Fighter>().GetHealth();
                         comparisonMore = false;
                         break;
                 }
@@ -317,6 +315,7 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void ResetStats()
     {
+        defaultSpeed = (agent == null) ? 0 : agent.speed; 
         timeFromLastShot = shotCooldown; //fighter starts with no cooldown
         damageMatrix = new DamageMatrix(damageAttack.Values, damageResistances.Values);
 
@@ -328,7 +327,16 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void Damage(GameObject target, bool heal = false) 
     {
-        if(target.GetComponentInChildren<Fighter>() != null && target.activeInHierarchy) target.GetComponentInChildren<Fighter>().GetDamaged(damageMatrix, heal);
+
+        if (target.GetComponent<Fighter>() != null && target.activeInHierarchy)
+        {
+            fighterBuffer = target.GetComponent<Fighter>();
+            fighterBuffer.GetDamaged(damageMatrix, heal);
+            foreach(StatusEffect effect in effectsOnHit)
+            {
+                fighterBuffer.AddStatusEffect(effect);
+            }
+        } 
     }
 
     public virtual void Heal(GameObject target)
@@ -387,12 +395,21 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void UpdateHealthUI()
     {
-        if (HPfill != null) { HPfill.fillAmount = Mathf.Clamp(currentHealth / maxHealth, 0, 1f);  }
+        if (HPfill != null) {
+            HPfill.fillAmount = Mathf.Clamp(currentHealth / maxHealth, 0, 1f);  
+            
+        }
     }
 
     public virtual void UpdateCooldownUI()
     {
-        if (CDfill != null) { CDfill.fillAmount = Mathf.Clamp(timeFromLastShot / shotCooldown, 0, 1f); }
+        if (CDfill != null) {
+            CDfill.fillAmount = Mathf.Clamp(timeFromLastShot / shotCooldown, 0, 1f);
+            if (inFocus)
+            {
+                UIManager.Instance.SetCD(CDfill.fillAmount);
+            }
+        }
     }
 
     //getters
@@ -416,7 +433,10 @@ public abstract class Fighter : MonoBehaviour
 
         return GetType();
     }
-
+    public virtual string GetName()
+    {
+        return fighterName;
+    }
     public virtual float GetHealth()
     {
         return currentHealth;
@@ -460,9 +480,24 @@ public abstract class Fighter : MonoBehaviour
     }
 
     //setters
+    public virtual void ToggleInFocus(bool toggle) { inFocus = toggle; }
     public virtual void SetTargetingMode(TargetingModes m) { targetingMode = m; }
+    public virtual void SetName(string nameString) { fighterName = nameString; }
     public virtual void SetAttackType(AttackTypes t) {attackType = t; }
+    public virtual void AddStatusEffect(StatusEffect effect, int amount = 1)
+    {
+        foreach (StatusEffect e in statusEffects)
+        {
+            if (e.GetType() == effect.GetType()) 
+            {
+                e.TickUp(amount);
+                return;
+            }
+        }
 
+        effect.SetFighter(this);
+        statusEffects.Add(effect);
+    }
     public virtual void AddStatusEffect<T>(int amount) where T:StatusEffect
     {
         effectBuffer = null;
@@ -492,6 +527,16 @@ public abstract class Fighter : MonoBehaviour
             }
         }
     }
+
+    public virtual void RecalculateSpeed() 
+    {
+        if (agent != null) agent.speed = (isFlying ? 1.0f : terrainSpeedModifier)  * defaultSpeed * speedModifier;
+/*        Debug.Log("terrain: " + terrainSpeedModifier);
+        Debug.Log("default: " + defaultSpeed);
+        Debug.Log("from towers: " + speedModifier);*/
+    }
+    public virtual void SetSpeedModifier(float modifier) { speedModifier = modifier; }
+    public virtual void SetTerrainSpeedModifier(float cost) { terrainSpeedModifier = 1f/ cost; }
 }
 
 public enum TargetingModes
