@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c36138c5be291ec429e0007977df7f06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  navMeshModifier: {fileID: 3715533262204836971}
 --- !u!65 &8317523937642481950
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -52,7 +52,7 @@ public abstract class Fighter : MonoBehaviour
     bool comparisonMore = true;
     protected List<GameObject> targetsBuffer;
     public Transform turret;
-    protected float rotationSpeed = 0.02f;
+    protected float rotationSpeed = 0.5f;
     protected Fighter fighterBuffer;
     protected Renderer fighterRendererBuffer;
     protected string fighterClassBuffer;
@@ -74,10 +74,11 @@ public abstract class Fighter : MonoBehaviour
     //misc
     bool inFocus = false;
     public string fighterName;
+    Transform fighterParent;
 
     protected virtual void Awake()
     {
-
+        fighterParent = gameObject.GetComponent<WhereIs>().GetParent();
         ResetStats();
     }
 
@@ -379,12 +380,14 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void Die(bool money = false)
     {
+        
         //gameObject.SetActive(false);
         foreach(Fighter fighter in visbleByFighters.Values)
         {
             fighter.RemoveTarget(this);
         }
 
+        fighterParent.gameObject.SetActive(false);
         //overriden for tower and enemy, enqueues towers/enemies and signals the towers
     }
 
@@ -395,20 +398,24 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void UpdateHealthUI()
     {
+        if (inFocus)
+        {
+            UIManager.Instance.SetHP(Mathf.Clamp(currentHealth / maxHealth, 0, 1f));
+        }
+
         if (HPfill != null) {
-            HPfill.fillAmount = Mathf.Clamp(currentHealth / maxHealth, 0, 1f);  
-            
+            HPfill.fillAmount = Mathf.Clamp(currentHealth / maxHealth, 0, 1f);
         }
     }
 
     public virtual void UpdateCooldownUI()
     {
+        if (inFocus)
+        {
+            UIManager.Instance.SetCD(Mathf.Clamp(timeFromLastShot / shotCooldown, 0, 1f));
+        }
         if (CDfill != null) {
             CDfill.fillAmount = Mathf.Clamp(timeFromLastShot / shotCooldown, 0, 1f);
-            if (inFocus)
-            {
-                UIManager.Instance.SetCD(CDfill.fillAmount);
-            }
         }
     }
 
@@ -530,13 +537,17 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void RecalculateSpeed() 
     {
-        if (agent != null) agent.speed = (isFlying ? 1.0f : terrainSpeedModifier)  * defaultSpeed * speedModifier;
-/*        Debug.Log("terrain: " + terrainSpeedModifier);
-        Debug.Log("default: " + defaultSpeed);
-        Debug.Log("from towers: " + speedModifier);*/
+        if (agent != null)
+        {/*
+            Debug.Log("terrain: " + terrainSpeedModifier);
+            Debug.Log("default: " + defaultSpeed);
+            Debug.Log("from towers: " + speedModifier);*/
+        }
+        if (agent != null) agent.speed = (isFlying ? 1.0f : terrainSpeedModifier) * defaultSpeed * speedModifier;
+
     }
     public virtual void SetSpeedModifier(float modifier) { speedModifier = modifier; }
-    public virtual void SetTerrainSpeedModifier(float cost) { terrainSpeedModifier = 1f/ cost; }
+    public virtual void SetTerrainSpeedModifier(float cost) { terrainSpeedModifier = (1f/cost);}
 }
 
 public enum TargetingModes

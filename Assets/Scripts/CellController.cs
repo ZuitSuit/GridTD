@@ -8,40 +8,48 @@ public class CellController : MonoBehaviour
     //get a bunch of info about the tile here
     bool canBuild = true;
     int gridReference;
-    float speedModifier;
+    float speedModifier = 1.0f;
     Fighter fighterBuffer;
+    WhereIs whereIsBuffer;
+
+    public NavMeshModifier navMeshModifier;
 
     List<GameObject> fighters = new List<GameObject>();
 
     private void Start()
     {
-        if(gameObject.GetComponentInParent<NavMeshModifier>() != null && gameObject.GetComponentInParent<NavMeshModifier>().overrideArea)
+        if(navMeshModifier != null && navMeshModifier.overrideArea)
         {
-            speedModifier = NavMesh.GetAreaCost(gameObject.GetComponentInParent<NavMeshModifier>().area);
+            
+            speedModifier = NavMesh.GetAreaCost(navMeshModifier.area);
+            Debug.Log("speed mod is fine here: "+speedModifier);
         }
         else
         {
             speedModifier = 1.0f;
         }
+
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.isTrigger) return;
-        if (other.GetComponentInChildren<Fighter>() != null)
+        if (other.GetComponent<WhereIs>() != null)
         {
-            fighterBuffer = other.GetComponentInChildren<Fighter>();
+            whereIsBuffer = other.GetComponent<WhereIs>();
+            fighterBuffer = whereIsBuffer.GetFighter();
             fighterBuffer.SetTerrainSpeedModifier(speedModifier);
             fighterBuffer.RecalculateSpeed();
             fighters.Add(other.gameObject);
-            
         }
+
+        Debug.Log("but breaks somewhere here: " + speedModifier);
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.isTrigger) return;
-        if (other.GetComponentInChildren<Fighter>() != null)
+        if (other.GetComponent<WhereIs>() != null)
         {
             fighters.Remove(other.gameObject);
         }
@@ -55,6 +63,11 @@ public class CellController : MonoBehaviour
     public int GetGridReference()
     {
         return gridReference;
+    }
+
+    public float GetSpeedModifier()
+    {
+        return speedModifier;
     }
 
     //setters

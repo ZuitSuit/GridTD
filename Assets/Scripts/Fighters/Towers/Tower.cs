@@ -4,7 +4,6 @@ using UnityEngine;
 
 public abstract class Tower : Fighter
 {
-    public GameObject towerParent;
     int gridReference;
 
     // Start is called before the first frame update
@@ -15,7 +14,6 @@ public abstract class Tower : Fighter
         //default tower settings
         targetType = typeof(Enemy);
         attackType = AttackTypes.SingleTarget;
-
         fighterRangeDefault = range.radius;
         range.radius = fighterRange;
         if(turret != null )turret.LookAt(Vector3.zero);
@@ -35,9 +33,6 @@ public abstract class Tower : Fighter
             //TODO refund % of price 
         }
 
-        //GridManager.Instance.RemoveTarget(gameObject, visibleByTowers, false);
-        //do the cool animation here then despawn -> to pool
-        towerParent.SetActive(false);
     }
 
     public virtual void Place(int reference)

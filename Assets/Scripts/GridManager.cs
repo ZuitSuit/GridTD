@@ -16,7 +16,6 @@ public class GridManager : MonoBehaviour
     public Transform EnemyParent;
     public Transform TowerParent;
 
-
     public Transform destination;
     public Transform spawnPoint;
     //test object
@@ -74,60 +73,43 @@ public class GridManager : MonoBehaviour
     void Update()
     {
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetButtonDown("Fire") && Physics.Raycast(ray, out hit, 1000f, FighterVision - 5)) //-1 to invert mask, -4 to ignore raycast
+        if (Input.GetButtonDown("Fire")) 
         {
-            //if cell - show build menu
-            if (hit.collider.gameObject.GetComponent<CellManager>() != null)
+            if (Physics.Raycast(ray, out hit, 1000f, FighterVision - 5)) //-1 to invert mask, -4 to ignore raycast
             {
-                cellController = hit.collider.gameObject.GetComponent<CellManager>().controller;
-                //TODO controller calls build UI
-            }
+                if (hit.collider.gameObject.GetComponent<CellManager>() != null)
+                {
+                    cellController = hit.collider.gameObject.GetComponent<CellManager>().controller;
+                    UIManager.Instance.BuildUI(cellController);
 
-            else if (hit.collider.gameObject.GetComponent<WhereIs>() != null)
-            {
-                whereIsBuffer = hit.collider.gameObject.GetComponent<WhereIs>();
-                fighterBuffer = whereIsBuffer.GetFighter();
-                if(fighterInFocus != null) fighterInFocus.ToggleInFocus(false);
-                fighterInFocus = fighterBuffer;
-                fighterBuffer.ToggleInFocus(true);
-                UIManager.Instance.TrackFighter(fighterInFocus, whereIsBuffer);
-            }
-
-            //collapse all active menus
-            switch (hit.collider.gameObject.tag)
-            {
-                case "Enemy":
-                    //enemy info menu
-                    break;
-                case "Tower":
-                    //tower menu above tower
-                    break;
-                case "Cell":
-                    //build menu on cell
-                    if(hit.collider.gameObject.GetComponentInChildren<CellController>() != null)
-                    {
-                        CellController cellController = hit.collider.gameObject.GetComponentInChildren<CellController>();
-                        if (!cellController.CheckBuild())
+                        if (cellController.CheckBuild())
                         {
-                            break;
+                                                    GameObject tower = Instantiate(TowerPrefab);
+                            //tower.transform.SetParent(TowerParent);
+                            tower.transform.position = hit.collider.transform.position;
+                            tower.GetComponentInChildren<Tower>().Place(cellController.GetGridReference());
+                            //tower.GetComponentInChildren<Fighter>().SpawnCheck();
+
+                            GridTowers[cellController.GetGridReference()] = tower;
+                            cellController.ToggleBuild(false);
                         }
+                    //TODO controller calls build UI
+                }
 
-                        GameObject tower = Instantiate(TowerPrefab);
-                        //tower.transform.SetParent(TowerParent);
-                        tower.transform.position = hit.collider.transform.position;
-                        tower.GetComponentInChildren<Tower>().Place(cellController.GetGridReference());
-                        //tower.GetComponentInChildren<Fighter>().SpawnCheck();
-
-                        GridTowers[cellController.GetGridReference()] = tower;
-                        cellController.ToggleBuild(false);
-
-                        //send cell info to menu?
-                    }
-
-                    break;
-
+                else if (hit.collider.gameObject.GetComponent<WhereIs>() != null)
+                {
+                    whereIsBuffer = hit.collider.gameObject.GetComponent<WhereIs>();
+                    fighterBuffer = whereIsBuffer.GetFighter();
+                    if (fighterInFocus != null) fighterInFocus.ToggleInFocus(false);
+                    fighterInFocus = fighterBuffer;
+                    fighterBuffer.ToggleInFocus(true);
+                    UIManager.Instance.TrackFighter(fighterInFocus, whereIsBuffer, fighterBuffer.GetFighterType() == typeof(Tower));
+                }
             }
-
+            else
+            {
+                UIManager.Instance.HideUI();
+            }
         }
     }
 
@@ -156,6 +138,7 @@ public class GridManager : MonoBehaviour
 
     IEnumerator EnemySpawn()
     {
+    
         yield return new WaitForSeconds(1f); //wait for navmesh to generate - do this properly
         GameObject testEnemy = Instantiate(enemyPrefab);
         testEnemy.transform.SetParent(EnemyParent);
@@ -164,7 +147,7 @@ public class GridManager : MonoBehaviour
 
         testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = false;
         testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = true;
-        StartCoroutine(EnemySpawn());
+        //StartCoroutine(EnemySpawn());
     }
 
 

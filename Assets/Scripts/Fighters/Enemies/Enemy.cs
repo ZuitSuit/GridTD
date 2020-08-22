@@ -71,7 +71,6 @@ public class Enemy : Fighter
     public override void Die(bool money = true)
     {
         base.Die();
-        gameObject.SetActive(false);
         //move back to spawn
         //doesn't clear the cell on which it died
         if (money)
