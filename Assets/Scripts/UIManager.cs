@@ -46,6 +46,19 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void InitializeBuildUI(List<Tower> towers)
+    {
+        //get prefab with icon/price
+        //get icons from Tower component
+        //get name and price
+        //add prefab to the list
+    }
+
+    public void InitializeWaveUI(List<Enemy> enemies)
+    {
+
+    }
+
     public void UnTrackFighter()
     {
         fighterUI.SetActive(false);

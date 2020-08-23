@@ -74,6 +74,7 @@ public abstract class Fighter : MonoBehaviour
     //misc
     bool inFocus = false;
     public string fighterName;
+    public Sprite fighterIcon;
     Transform fighterParent;
 
     protected virtual void Awake()

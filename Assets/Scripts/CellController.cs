@@ -22,7 +22,6 @@ public class CellController : MonoBehaviour
         {
             
             speedModifier = NavMesh.GetAreaCost(navMeshModifier.area);
-            Debug.Log("speed mod is fine here: "+speedModifier);
         }
         else
         {
@@ -38,12 +37,11 @@ public class CellController : MonoBehaviour
         {
             whereIsBuffer = other.GetComponent<WhereIs>();
             fighterBuffer = whereIsBuffer.GetFighter();
+            Debug.Log(speedModifier);
             fighterBuffer.SetTerrainSpeedModifier(speedModifier);
             fighterBuffer.RecalculateSpeed();
             fighters.Add(other.gameObject);
         }
-
-        Debug.Log("but breaks somewhere here: " + speedModifier);
     }
 
     private void OnTriggerExit(Collider other)
