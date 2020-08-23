@@ -4,7 +4,8 @@ using UnityEngine;
 
 public abstract class Tower : Fighter
 {
-    int gridReference;
+    int gridReference; // position on grid
+    int gameStateReference; // id in gamestate for outside calls
 
     // Start is called before the first frame update
     protected override void Awake()
@@ -16,7 +17,7 @@ public abstract class Tower : Fighter
         attackType = AttackTypes.SingleTarget;
         fighterRangeDefault = range.radius;
         range.radius = fighterRange;
-        if(turret != null )turret.LookAt(Vector3.zero);
+        if (turret != null) turret.LookAt(Vector3.zero);
     }
 
     // Update is called once per frame
@@ -33,20 +34,23 @@ public abstract class Tower : Fighter
             //TODO refund % of price 
         }
 
+        GridManager.Instance.GetCell(gridReference).RemoveTower();
+
     }
 
+    //getters
+    public virtual int GetGameStateID() { return gameStateReference; }
+
+
+    //setters
     public virtual void Place(int reference)
     {
         gridReference = reference;
     }
 
-    public virtual void RemoveTarget(GameObject target, bool enemy = true)
+    public virtual void SetGameStateID(int id)
     {
-        if (currentTarget == target) Retarget();
-
-        fighterBuffer = target.GetComponentInChildren<Fighter>();
-        targetsInRange[fighterBuffer.GetFighterType().ToString()].Remove(target);
+        gameStateReference = id;
     }
-
 
 }

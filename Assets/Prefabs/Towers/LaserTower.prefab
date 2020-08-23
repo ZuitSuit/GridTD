@@ -154,6 +154,7 @@ MonoBehaviour:
   CDfill: {fileID: 3124044417744539578}
   agent: {fileID: 0}
   fighterName: Laser Tower
+  fighterIcon: {fileID: 21300000, guid: d62678d4c6c861842bfcecff3161d119, type: 3}
   laser: {fileID: 9029494703533903837}
 --- !u!135 &6924208053364181137
 SphereCollider:
@@ -695,6 +696,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8423244805229763781}
+  - component: {fileID: 5030062498463245968}
   m_Layer: 11
   m_Name: LaserTower
   m_TagString: Tower
@@ -718,6 +720,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5030062498463245968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8423244805229763778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7b87a0a2d11d164589a82535583e9ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabParent: {fileID: 8423244805229763781}
+  fighter: {fileID: 105341736012430529}
+  cameraMount: {fileID: 3751469244504520007}
 --- !u!1001 &1935758215188554239
 PrefabInstance:
   m_ObjectHideFlags: 0

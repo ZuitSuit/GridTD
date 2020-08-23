@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,14 +10,17 @@ public class GameState : MonoBehaviour
 
     //prefabs
     public List<GameObject> towerPrefabs;
-    List<Tower> towersSelection;
     public List<GameObject> enemyPrefabs;
-    List<Enemy> enemySelection;
+    private List<Tower> towerScripts = new List<Tower>();
+    private List<Enemy> enemyScripts = new List<Enemy>();
 
     //buffer variables
     Fighter fighterBuffer;
     WhereIs whereIsBuffer;
 
+
+    //money
+    int money = 100;
 
     private void Awake()
     {
@@ -25,23 +29,52 @@ public class GameState : MonoBehaviour
 
     private void Start()
     {
-        foreach(GameObject tower in towerPrefabs)
+        for(int i = 0; i < towerPrefabs.Count; i++)
         {
-            whereIsBuffer = tower.GetComponentInChildren<WhereIs>();
+            whereIsBuffer = towerPrefabs[i].GetComponentInChildren<WhereIs>();
             fighterBuffer = whereIsBuffer.GetFighter();
-            towersSelection.Add((Tower)whereIsBuffer.GetFighter());
+            towerScripts.Add((Tower)whereIsBuffer.GetFighter());
+
+
         }
 
-        foreach (GameObject enemy in enemyPrefabs)
+        for (int i = 0; i < enemyPrefabs.Count; i++)
         {
-            whereIsBuffer = enemy.GetComponentInChildren<WhereIs>();
+            whereIsBuffer = enemyPrefabs[i].GetComponentInChildren<WhereIs>();
             fighterBuffer = whereIsBuffer.GetFighter();
-            enemySelection.Add((Enemy)whereIsBuffer.GetFighter());
+            enemyScripts.Add((Enemy)whereIsBuffer.GetFighter());
         }
 
+        UIManager.Instance.InitializeBuildUI();
+        UIManager.Instance.InitializeWaveUI();
+    }
 
+    //getters
+    public GameObject GetTowerPrefab(int id) { return towerPrefabs[id]; }
+    public List<Tower> GetTowerScripts() { return towerScripts; }
+    public bool CanAfford(int towerID, bool spend = false)
+    {
+        if(towerScripts[towerID].GetPrice() <= money)
+        {
+            if (spend)
+            {
+                SpendMoney(towerScripts[towerID].GetPrice());
+            }
 
-        UIManager.Instance.InitializeBuildUI(towersSelection);
-        UIManager.Instance.InitializeWaveUI(enemySelection);
+            return true;
+        }
+
+        return false;
+    }
+
+    //setters
+    public void GetMoney(int sum)
+    {
+        money += sum;
+        //TODO UIManager.Instance.RedrawCashUI()
+    }
+    public void SpendMoney(int sum)
+    {
+        GetMoney(sum * -1);
     }
 }

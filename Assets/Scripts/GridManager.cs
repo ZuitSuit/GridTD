@@ -12,6 +12,7 @@ public class GridManager : MonoBehaviour
 
     public Transform GridParent;
     List<GameObject> GridCells = new List<GameObject>();
+    List<CellController> CellControllers = new List<CellController>();
     List<GameObject> GridTowers = new List<GameObject>();
     public Transform EnemyParent;
     public Transform TowerParent;
@@ -26,6 +27,7 @@ public class GridManager : MonoBehaviour
     public LayerMask FighterVision; //to ignore fighter vision when placing/selecting
     CellController cellController;
     Fighter fighterBuffer;
+    Tower towerBuffer;
     WhereIs whereIsBuffer;
 
     Fighter fighterInFocus;
@@ -55,6 +57,7 @@ public class GridManager : MonoBehaviour
                 cell.transform.SetParent(GridParent);
                 cell.transform.localPosition = new Vector3(ix * 10f, 0, iz * 10f);
                 GridCells.Add(cell);
+                CellControllers.Add(cell.GetComponentInChildren<CellController>());
                 GridTowers.Add(null);
                 cell.GetComponentInChildren<CellController>().SetGridReference(GridCells.Count-1);
             }
@@ -81,18 +84,6 @@ public class GridManager : MonoBehaviour
                 {
                     cellController = hit.collider.gameObject.GetComponent<CellManager>().controller;
                     UIManager.Instance.BuildUI(cellController);
-
-                        if (cellController.CheckBuild())
-                        {
-                                                    GameObject tower = Instantiate(TowerPrefab);
-                            //tower.transform.SetParent(TowerParent);
-                            tower.transform.position = hit.collider.transform.position;
-                            tower.GetComponentInChildren<Tower>().Place(cellController.GetGridReference());
-                            //tower.GetComponentInChildren<Fighter>().SpawnCheck();
-
-                            GridTowers[cellController.GetGridReference()] = tower;
-                            cellController.ToggleBuild(false);
-                        }
                     //TODO controller calls build UI
                 }
 
@@ -106,14 +97,11 @@ public class GridManager : MonoBehaviour
                     UIManager.Instance.TrackFighter(fighterInFocus, whereIsBuffer, fighterBuffer.GetFighterType() == typeof(Tower));
                 }
             }
-            else
-            {
-                UIManager.Instance.HideUI();
-            }
         }
     }
 
     //getters
+    public CellController GetCell(int id) { return CellControllers[id]; }
     public Transform GetSpawnPoint() { return spawnPoint; }
     public Transform GetDestination() { return destination; }
 
@@ -122,18 +110,26 @@ public class GridManager : MonoBehaviour
         return Vector3.Distance(objectPosition.position, destination.position);
     }
 
-    //setters
-    public void RemoveTarget(GameObject target, List<int> towers, bool enemy = true)
+    public bool Build(int gridID, int towerID)
     {
-        for(int i = 0; i < towers.Count; i++)
+        if (CellControllers[gridID].CanBuild() && GameState.Instance.CanAfford(towerID, true))
         {
-            if(GridTowers[towers[i]] == null)
-            {
-                return;
-            }
+            
+            GameObject tower = Instantiate(GameState.Instance.GetTowerPrefab(towerID));
+            tower.transform.SetParent(TowerParent);
+            tower.transform.position = CellControllers[gridID].transform.position;
+            whereIsBuffer = tower.GetComponent<WhereIs>();
+            towerBuffer = (Tower)whereIsBuffer.GetFighter();
+            towerBuffer.Place(gridID);
+            //tower.GetComponentInChildren<Fighter>().SpawnCheck();
 
-            GridTowers[towers[i]].GetComponentInChildren<Tower>().RemoveTarget(target, enemy);
+            GridTowers[cellController.GetGridReference()] = tower;
+            cellController.SetTower(tower.GetComponentInChildren<Tower>().GetGameStateID());
+
+            UIManager.Instance.TrackFighter(towerBuffer, whereIsBuffer);
         }
+
+        return false;
     }
 
     IEnumerator EnemySpawn()

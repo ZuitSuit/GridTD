@@ -6,8 +6,10 @@ using UnityEngine.AI;
 public class CellController : MonoBehaviour
 {
     //get a bunch of info about the tile here
-    bool canBuild = true;
+    int towerID = -1;
     int gridReference;
+    public string tileName;
+
     float speedModifier = 1.0f;
     Fighter fighterBuffer;
     WhereIs whereIsBuffer;
@@ -28,6 +30,11 @@ public class CellController : MonoBehaviour
             speedModifier = 1.0f;
         }
 
+        if(tileName == null || tileName == "")
+        {
+            tileName = "Tile";
+        }
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -37,7 +44,6 @@ public class CellController : MonoBehaviour
         {
             whereIsBuffer = other.GetComponent<WhereIs>();
             fighterBuffer = whereIsBuffer.GetFighter();
-            Debug.Log(speedModifier);
             fighterBuffer.SetTerrainSpeedModifier(speedModifier);
             fighterBuffer.RecalculateSpeed();
             fighters.Add(other.gameObject);
@@ -54,9 +60,10 @@ public class CellController : MonoBehaviour
     }
 
     //getters
-    public bool CheckBuild()
+    public bool CanBuild()
     {
-        return canBuild && fighters.Count == 0;
+        //can only build if there is no tower on top of this grid cell
+        return towerID == -1;
     }
     public int GetGridReference()
     {
@@ -69,9 +76,14 @@ public class CellController : MonoBehaviour
     }
 
     //setters
-    public void ToggleBuild(bool toggle)
+
+    public void SetTower(int reference)
     {
-        canBuild = toggle;
+        towerID = reference;
+    }
+    public void RemoveTower()
+    {
+        towerID = -1;
     }
     public void SetGridReference(int reference)
     {

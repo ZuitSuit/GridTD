@@ -14,20 +14,28 @@ public class UIManager : MonoBehaviour
     public GameObject fighterUIStatic;
     public GameObject buildUI;
 
+    //fighter UI
     public Transform cameraParent;
     public Camera FPSCamera;
     public Transform surroundParent;
     public Camera surroundCamera;
     bool surroundActive = false;
-
     public Image HPOutline;
     public Image CDOutline;
-    public TextMeshProUGUI menuName;
+    public TextMeshProUGUI fighterName;
 
+    //build UI
+    public Transform tileTowerParent;
+    public GameObject tileTowerPrefab;
+    GameObject tileBuffer;
+    TowerButton tileScriptBuffer;
+    public TextMeshProUGUI tileName;
+    public TextMeshProUGUI speedModifier;
 
     Fighter activeFighter;
     Transform fighterParent;
     WhereIs activeWhereIs;
+    int activeGridCell = -1;
 
     private void Awake()
     {
@@ -46,15 +54,21 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void InitializeBuildUI(List<Tower> towers)
+    public void InitializeBuildUI()
     {
-        //get prefab with icon/price
-        //get icons from Tower component
-        //get name and price
-        //add prefab to the list
+        //get prefab for the button
+
+        foreach (Tower tower in GameState.Instance.GetTowerScripts())
+        {
+            tileBuffer = Instantiate(tileTowerPrefab);
+            tileBuffer.transform.SetParent(tileTowerParent);
+            tileBuffer.transform.localPosition = Vector3.zero;
+            tileScriptBuffer = tileBuffer.GetComponent<TowerButton>();
+            tileScriptBuffer.InitializedButton(tower); //feed the button all the necessary data
+        }
     }
 
-    public void InitializeWaveUI(List<Enemy> enemies)
+    public void InitializeWaveUI()
     {
 
     }
@@ -77,7 +91,7 @@ public class UIManager : MonoBehaviour
         fighterParent = whereIs.GetParent();
 
 
-        menuName.text = fighter.GetName();
+        fighterName.text = fighter.GetName();
         if (whereIs.GetCameraMount() != null)
         {
             FPSCamera.transform.SetParent(whereIs.GetCameraMount());
@@ -97,6 +111,9 @@ public class UIManager : MonoBehaviour
 
     public void BuildUI(CellController controller)
     {
+        tileName.text = controller.tileName;
+        speedModifier.text = "Speed: " + System.Math.Round(1f / controller.GetSpeedModifier(), 2);
+        activeGridCell = controller.GetGridReference();
         buildUI.SetActive(true);
         fighterUI.SetActive(false);
     }
@@ -107,6 +124,10 @@ public class UIManager : MonoBehaviour
         fighterUI.SetActive(false);
     }
 
+    //getters
+    public int GetActiveGridCell() { return activeGridCell; }
+
+    //setters
     public void SetHP(float amount)
     {
         HPOutline.fillAmount = amount;

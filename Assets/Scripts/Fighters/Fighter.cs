@@ -9,7 +9,7 @@ public abstract class Fighter : MonoBehaviour
 {
     protected float currentHealth;
     protected float maxHealth = 10f; //default HP value
-    protected float price; // tower price or enemy payout
+    protected int price = 10; // tower price or enemy payout
     protected GameObject currentTarget;
     public SphereCollider range; //collider used for tracking visible targets
     protected float fighterRange = 20f; //range of the fighter after recalculations
@@ -76,6 +76,7 @@ public abstract class Fighter : MonoBehaviour
     public string fighterName;
     public Sprite fighterIcon;
     Transform fighterParent;
+
 
     protected virtual void Awake()
     {
@@ -425,6 +426,11 @@ public abstract class Fighter : MonoBehaviour
     {
         if (fighterType == null) fighterType = GetFighterClass();
         return fighterType;
+    }
+
+    public virtual int GetPrice()
+    {
+        return price;
     }
 
     public virtual System.Type GetFighterClass()
