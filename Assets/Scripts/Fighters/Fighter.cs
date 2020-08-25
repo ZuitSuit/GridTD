@@ -382,12 +382,18 @@ public abstract class Fighter : MonoBehaviour
 
     public virtual void Die(bool money = false)
     {
-        
+        if (inFocus)
+        {
+            UIManager.Instance.UnTrackFighter();
+        }
+
         //gameObject.SetActive(false);
-        foreach(Fighter fighter in visbleByFighters.Values)
+        foreach (Fighter fighter in visbleByFighters.Values)
         {
             fighter.RemoveTarget(this);
         }
+
+
 
         fighterParent.gameObject.SetActive(false);
         //overriden for tower and enemy, enqueues towers/enemies and signals the towers
@@ -421,6 +427,17 @@ public abstract class Fighter : MonoBehaviour
         }
     }
 
+    public virtual void NextTargetingMode()
+    {
+        targetingMode = (int)targetingMode++ < System.Enum.GetNames(typeof(TargetingModes)).Length-1 ? (TargetingModes)(int)targetingMode++ : (TargetingModes)0;
+        
+        if (inFocus)
+        {
+            UIManager.Instance.SetTargetingMode(targetingMode);
+        }
+
+    }
+
     //getters
     public virtual System.Type GetFighterType()
     {
@@ -428,10 +445,8 @@ public abstract class Fighter : MonoBehaviour
         return fighterType;
     }
 
-    public virtual int GetPrice()
-    {
-        return price;
-    }
+    public virtual int GetPrice() { return price; }
+    public virtual TargetingModes GetTargetingMode(){ return targetingMode; }
 
     public virtual System.Type GetFighterClass()
     {

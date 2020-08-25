@@ -23,7 +23,12 @@ public class UIManager : MonoBehaviour
     public Image HPOutline;
     public Image CDOutline;
     public TextMeshProUGUI fighterName;
-
+    public Image targetingModeIcon;
+    //targeting icons
+    public Sprite closestIcon;
+    public Sprite fastestIcon;
+    public Sprite mostHPIcon;
+    public Sprite leastHPIcon;
     //build UI
     public Transform tileTowerParent;
     public GameObject tileTowerPrefab;
@@ -31,6 +36,9 @@ public class UIManager : MonoBehaviour
     TowerButton tileScriptBuffer;
     public TextMeshProUGUI tileName;
     public TextMeshProUGUI speedModifier;
+
+    //gamestate UI
+    public TextMeshProUGUI coinCounter;
 
     Fighter activeFighter;
     Transform fighterParent;
@@ -44,6 +52,10 @@ public class UIManager : MonoBehaviour
         fighterUI.SetActive(false);
         buildUI.SetActive(false);
 
+    }
+
+    private void Start()
+    {
     }
 
     private void Update()
@@ -73,6 +85,11 @@ public class UIManager : MonoBehaviour
 
     }
 
+    public void InitializeGameStateUI(int cash, int waves)
+    {
+        coinCounter.text = cash.ToString();
+    }
+
     public void UnTrackFighter()
     {
         fighterUI.SetActive(false);
@@ -86,8 +103,11 @@ public class UIManager : MonoBehaviour
     {
         buildUI.SetActive(false);
         fighterUI.SetActive(true);
+
         fighterUIInteractive.SetActive(interactive);
         fighterUIStatic.SetActive(!interactive);
+        activeFighter = fighter;
+        SetTargetingMode(activeFighter.GetTargetingMode());
         fighterParent = whereIs.GetParent();
 
 
@@ -106,7 +126,7 @@ public class UIManager : MonoBehaviour
             surroundParent.rotation = Quaternion.identity;
             surroundActive = true;
         }
-        
+
     }
 
     public void BuildUI(CellController controller)
@@ -136,6 +156,40 @@ public class UIManager : MonoBehaviour
     public void SetCD(float amount)
     {
         CDOutline.fillAmount = amount;
+    }
+
+    public void SetCoinCounter(int coins)
+    {
+        coinCounter.text = coins.ToString();
+    }
+
+    public void SwitchTargetingMode()
+    {
+        activeFighter.NextTargetingMode();
+    }
+    public void SetTargetingMode(TargetingModes targetingMode)
+    {
+        switch (targetingMode)
+        {
+            case TargetingModes.Closest:
+                targetingModeIcon.sprite = closestIcon;
+                break;
+            case TargetingModes.Fastest:
+                targetingModeIcon.sprite = fastestIcon;
+                break;
+            case TargetingModes.LeastHP:
+                targetingModeIcon.sprite = leastHPIcon;
+                break;
+            case TargetingModes.MostHP:
+                targetingModeIcon.sprite = mostHPIcon;
+                break;
+        }
+    }
+
+    public void Sell()
+    {
+        activeFighter.Die(true);
+        
     }
 
     public enum FighterType

@@ -26,14 +26,17 @@ public abstract class Tower : Fighter
         base.Update();
     }
 
-    override public void Die(bool money = false)
+    public override void Die(bool money = false)
     {
-        base.Die();
+        
         if (money)
         {
-            //TODO refund % of price 
+            GridManager.Instance.PlayEffect("CoinBurst", transform.position);
+            //give cash
+            GameState.Instance.GetMoney(price/3); //get third of the money if tower is sold
         }
 
+        base.Die();
         GridManager.Instance.GetCell(gridReference).RemoveTower();
 
     }
@@ -51,6 +54,11 @@ public abstract class Tower : Fighter
     public virtual void SetGameStateID(int id)
     {
         gameStateReference = id;
+    }
+
+    public virtual void Sell()
+    {
+        Die(true);
     }
 
 }

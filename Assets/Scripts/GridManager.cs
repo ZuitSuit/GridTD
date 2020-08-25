@@ -5,6 +5,8 @@ using UnityEngine.AI;
 
 public class GridManager : MonoBehaviour
 {
+    public static GridManager Instance;
+
     public GameObject GridCellPrefab;
     public GameObject GridCellSwampPrefab;
 
@@ -16,6 +18,7 @@ public class GridManager : MonoBehaviour
     List<GameObject> GridTowers = new List<GameObject>();
     public Transform EnemyParent;
     public Transform TowerParent;
+    public Transform EffectsParent;
 
     public Transform destination;
     public Transform spawnPoint;
@@ -32,7 +35,11 @@ public class GridManager : MonoBehaviour
 
     Fighter fighterInFocus;
 
-    public static GridManager Instance;
+    public List<ParticleSystem> particlePrefabs;
+    Dictionary<string, Queue<ParticleSystem>> particleQueues = new Dictionary<string, Queue<ParticleSystem>>();
+    Queue<ParticleSystem> particleQueueBuffer = new Queue<ParticleSystem>();
+    ParticleSystem particleSystemBuffer;
+    string particleNameBuffer;
 
     private void Awake()
     {
@@ -42,10 +49,23 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
+        //particle system setup
+        foreach(ParticleSystem particle in particlePrefabs)
+        {
+            particleQueueBuffer = new Queue<ParticleSystem>();
+            for (int i = 0; i < 50; i++)
+            {
+                particleNameBuffer = particle.name;
+                particleSystemBuffer = Instantiate(particle, EffectsParent);
+                particleSystemBuffer.name = particleNameBuffer;
+                particleQueueBuffer.Enqueue(particleSystemBuffer);
+            }
+            particleQueues.Add(particleNameBuffer, particleQueueBuffer);
+        }
 
+        //grid generation
         int gridX = 10;
         int gridZ = 10;
-
         //get grid array from the scene
 
         for (int ix = 0; ix < gridX; ix++)
@@ -93,7 +113,7 @@ public class GridManager : MonoBehaviour
                     fighterBuffer = whereIsBuffer.GetFighter();
                     if (fighterInFocus != null) fighterInFocus.ToggleInFocus(false);
                     fighterInFocus = fighterBuffer;
-                    fighterBuffer.ToggleInFocus(true);
+                    fighterInFocus.ToggleInFocus(true);
                     UIManager.Instance.TrackFighter(fighterInFocus, whereIsBuffer, fighterBuffer.GetFighterType() == typeof(Tower));
                 }
             }
@@ -110,6 +130,18 @@ public class GridManager : MonoBehaviour
         return Vector3.Distance(objectPosition.position, destination.position);
     }
 
+
+    public void PlayEffect(string effectName, Vector3 position)
+    {
+        if (particleQueues.ContainsKey(effectName) && particleQueues.Count > 0)
+        {
+            particleSystemBuffer = particleQueues[effectName].Dequeue();
+            particleSystemBuffer.transform.position = position;
+            particleSystemBuffer.Play();
+            StartCoroutine(EnqueueParticle(particleSystemBuffer));
+        }
+        
+    }
     public bool Build(int gridID, int towerID)
     {
         if (CellControllers[gridID].CanBuild() && GameState.Instance.CanAfford(towerID, true))
@@ -126,12 +158,22 @@ public class GridManager : MonoBehaviour
             GridTowers[cellController.GetGridReference()] = tower;
             cellController.SetTower(tower.GetComponentInChildren<Tower>().GetGameStateID());
 
-            UIManager.Instance.TrackFighter(towerBuffer, whereIsBuffer);
+            UIManager.Instance.TrackFighter(towerBuffer, whereIsBuffer, true);
+            towerBuffer.ToggleInFocus(true);
         }
 
         return false;
     }
 
+    IEnumerator EnqueueParticle(ParticleSystem particleSystem)
+    {
+        yield return new WaitForSeconds(particleSystem.main.duration + 0.1f);
+        if (particleQueues.ContainsKey(particleSystem.name))
+        {
+            particleQueues[particleSystem.name].Enqueue(particleSystem);
+
+        }
+    }
     IEnumerator EnemySpawn()
     {
     
@@ -143,8 +185,7 @@ public class GridManager : MonoBehaviour
 
         testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = false;
         testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = true;
-        //StartCoroutine(EnemySpawn());
+        yield return new WaitForSeconds(3f);
+        StartCoroutine(EnemySpawn());
     }
-
-
 }

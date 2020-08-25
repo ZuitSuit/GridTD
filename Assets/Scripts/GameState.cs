@@ -22,6 +22,8 @@ public class GameState : MonoBehaviour
     //money
     int money = 100;
 
+    int waves = 10; //TODO redo as wave dictionary
+
     private void Awake()
     {
         Instance = this;
@@ -34,8 +36,6 @@ public class GameState : MonoBehaviour
             whereIsBuffer = towerPrefabs[i].GetComponentInChildren<WhereIs>();
             fighterBuffer = whereIsBuffer.GetFighter();
             towerScripts.Add((Tower)whereIsBuffer.GetFighter());
-
-
         }
 
         for (int i = 0; i < enemyPrefabs.Count; i++)
@@ -47,6 +47,8 @@ public class GameState : MonoBehaviour
 
         UIManager.Instance.InitializeBuildUI();
         UIManager.Instance.InitializeWaveUI();
+        UIManager.Instance.InitializeGameStateUI(money, waves);
+
     }
 
     //getters
@@ -71,7 +73,7 @@ public class GameState : MonoBehaviour
     public void GetMoney(int sum)
     {
         money += sum;
-        //TODO UIManager.Instance.RedrawCashUI()
+        UIManager.Instance.SetCoinCounter(money);
     }
     public void SpendMoney(int sum)
     {

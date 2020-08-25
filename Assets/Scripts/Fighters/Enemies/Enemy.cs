@@ -70,15 +70,18 @@ public class Enemy : Fighter
     //TODO param to spawn gibs?
     public override void Die(bool money = true)
     {
-        base.Die();
-        //move back to spawn
-        //doesn't clear the cell on which it died
+        money = true; //TODO placeholder because OOP failed me here
         if (money)
         {
+            GridManager.Instance.PlayEffect("CoinBurst", transform.position);
             //give cash
-            //GameStateInstance.AddMoney(compensationAmount);
+            GameState.Instance.GetMoney(price);
         }
-        //tell the towers in range that this is no longer a valid target
+
+        base.Die();
+
+        //move back to spawn
+        //doesn't clear the cell on which it died
 
     }
 
