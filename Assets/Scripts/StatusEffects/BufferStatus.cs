@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BufferStatus : StatusEffect
 {
-    public BufferStatus(Fighter f, int t = 10, float i = 0.2f) : base(f, t, i) { }
+    public BufferStatus(Fighter f, int t = 1, float i = -1f) : base(f, t, i) { }
 
     protected override IEnumerator Action()
     {

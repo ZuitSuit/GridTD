@@ -51,6 +51,16 @@ public class GameState : MonoBehaviour
 
     }
 
+    public void Restart()
+    {
+        //TODO restart the whole thing
+    }
+
+    public void Exit()
+    {
+        Application.Quit();
+    }
+
     //getters
     public GameObject GetTowerPrefab(int id) { return towerPrefabs[id]; }
     public List<Tower> GetTowerScripts() { return towerScripts; }

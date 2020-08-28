@@ -334,11 +334,16 @@ public abstract class Fighter : MonoBehaviour
         if (target.GetComponent<Fighter>() != null && target.activeInHierarchy)
         {
             fighterBuffer = target.GetComponent<Fighter>();
-            fighterBuffer.GetDamaged(damageMatrix, heal);
-            foreach(StatusEffect effect in effectsOnHit)
+            //check if damage goes through
+            if(fighterBuffer.GetDamaged(damageMatrix, heal))
             {
-                fighterBuffer.AddStatusEffect(effect);
+                //add status effects 
+                foreach (StatusEffect effect in effectsOnHit)
+                {
+                    fighterBuffer.AddStatusEffect(effect);
+                }
             }
+
         } 
     }
 
@@ -347,7 +352,7 @@ public abstract class Fighter : MonoBehaviour
         Damage(target, true);
     }
 
-    public virtual void GetDamaged(DamageMatrix attackMatrix, bool heal = false)
+    public virtual bool GetDamaged(DamageMatrix attackMatrix, bool heal = false)
     {
 
         foreach (StatusEffect effect in statusEffects)
@@ -356,10 +361,12 @@ public abstract class Fighter : MonoBehaviour
             {
                 effect.TickDown(1);
 
-                return;
+                return false;
             }
 
         }
+
+        
 
         //foreach attack matrix type of damage that is not 0 - trigger the effect mb?
         damageAmount = attackMatrix.CalcualateDamage(attackMatrix);
@@ -368,7 +375,7 @@ public abstract class Fighter : MonoBehaviour
         if (heal)
         {
             currentHealth = Mathf.Clamp(currentHealth + damageAmount, currentHealth, maxHealth); //can't heal for negative amount or over max health
-            return;
+            return true;
             //overheal status effect?
         }
 
@@ -378,6 +385,8 @@ public abstract class Fighter : MonoBehaviour
         {
             Die();
         }
+
+        return true;
     }
 
     public virtual void Die(bool money = false)
@@ -457,8 +466,7 @@ public abstract class Fighter : MonoBehaviour
             inheritanceOrder.Add(typeBuffer);
             typeBuffer = typeBuffer.BaseType;
         }
-
-        Debug.Log(inheritanceOrder[Mathf.Clamp(inheritanceOrder.Count - 7, 0, inheritanceOrder.Count-1)]);
+        
 
         return GetType();
     }

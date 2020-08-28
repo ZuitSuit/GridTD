@@ -15,6 +15,7 @@ public class UIManager : MonoBehaviour
     public GameObject buildUI;
 
     //fighter UI
+    [Header("Fighter UI")]
     public Transform cameraParent;
     public Camera FPSCamera;
     public Transform surroundParent;
@@ -25,11 +26,13 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI fighterName;
     public Image targetingModeIcon;
     //targeting icons
+    [Header("Targeting icons")]
     public Sprite closestIcon;
     public Sprite fastestIcon;
     public Sprite mostHPIcon;
     public Sprite leastHPIcon;
     //build UI
+    [Header("Build UI")]
     public Transform tileTowerParent;
     public GameObject tileTowerPrefab;
     GameObject tileBuffer;
@@ -37,8 +40,26 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI tileName;
     public TextMeshProUGUI speedModifier;
 
-    //gamestate UI
-    public TextMeshProUGUI coinCounter;
+    //gamestate UI (top)
+    //coins - core hp
+    [Header("Coins - Core HP")]
+    public TextMeshProUGUI coinCounterText;
+    public TextMeshProUGUI coinPerMinuteText;
+    public TextMeshProUGUI coreHealthText;
+    public TextMeshProUGUI corePercentageText;
+    public GameObject altBackgroundCoins;
+    //wave
+    [Header("Wave Info")]
+    public GameObject wavesCounter;
+    public GameObject nextWave;
+
+    [Header("Controls")]
+    public Image restartButton;
+    public Image optionsButton;
+    public Image exitButton;
+    public GameObject restartText;
+    public GameObject optionsText;
+    public GameObject exitText;
 
     Fighter activeFighter;
     Transform fighterParent;
@@ -87,7 +108,7 @@ public class UIManager : MonoBehaviour
 
     public void InitializeGameStateUI(int cash, int waves)
     {
-        coinCounter.text = cash.ToString();
+        coinCounterText.text = cash.ToString();
     }
 
     public void UnTrackFighter()
@@ -129,6 +150,38 @@ public class UIManager : MonoBehaviour
 
     }
 
+    public void ToggleWaveUI(bool toggle)
+    {
+        wavesCounter.SetActive(toggle);
+        nextWave.SetActive(!toggle);
+    }
+
+    public void ToggleGameStateUI(bool toggle)
+    {
+        coinCounterText.gameObject.SetActive(toggle);
+        coinPerMinuteText.gameObject.SetActive(!toggle);
+        coreHealthText.gameObject.SetActive(toggle);
+        corePercentageText.gameObject.SetActive(!toggle);
+        altBackgroundCoins.SetActive(!toggle);
+    }
+
+
+    public void HighlightRestart(bool toggle)
+    {
+        restartButton.color = new Color(restartButton.color.r, restartButton.color.g, restartButton.color.b, toggle ? 1 : 0);
+        restartText.SetActive(toggle);
+    }
+    public void HighlightOptions(bool toggle)
+    {
+        optionsButton.color = new Color(optionsButton.color.r, optionsButton.color.g, optionsButton.color.b, toggle ? 1 : 0);
+        optionsText.SetActive(toggle);
+    }
+    public void HighlightExit(bool toggle)
+    {
+        exitButton.color = new Color(optionsButton.color.r, optionsButton.color.g, optionsButton.color.b, toggle ? 1 : 0);
+        exitText.SetActive(toggle);
+    }
+
     public void BuildUI(CellController controller)
     {
         tileName.text = controller.tileName;
@@ -160,7 +213,7 @@ public class UIManager : MonoBehaviour
 
     public void SetCoinCounter(int coins)
     {
-        coinCounter.text = coins.ToString();
+        coinCounterText.text = coins.ToString();
     }
 
     public void SwitchTargetingMode()
@@ -186,17 +239,23 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    
     public void Sell()
     {
         activeFighter.Die(true);
-        
     }
 
-    public enum FighterType
+    public void Restart()
     {
-        Controlled,
-        TargetingInfo,
-        None
+        GameState.Instance.Restart();
+    }
+    public void Options()
+    {
+        //stub method
+    }
+    public void Exit()
+    {
+        //GameState.Instance.Exit(); 
     }
 
 }

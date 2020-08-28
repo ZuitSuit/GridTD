@@ -165,6 +165,11 @@ public class GridManager : MonoBehaviour
         return false;
     }
 
+    public void ResetCamera()
+    {
+        //TODO do all the camera centering her
+    }
+
     IEnumerator EnqueueParticle(ParticleSystem particleSystem)
     {
         yield return new WaitForSeconds(particleSystem.main.duration + 0.1f);
