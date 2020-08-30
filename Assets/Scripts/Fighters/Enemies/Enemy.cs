@@ -11,7 +11,9 @@ public class Enemy : Fighter
     Transform spawn;
 
     bool isBerserk = false;
+    bool forceBerserk = false;
     float pathCheckTimer = 2f;
+    int gameStateReference;
 
     //public Animator animator;
 
@@ -23,6 +25,23 @@ public class Enemy : Fighter
         targetType = typeof(Tower);
         attackType = AttackTypes.RandomTarget;
         defaultSpeed = agent.speed;
+    }
+    protected override void Update()
+    {
+        base.Update();
+
+        pathCheckTimer -= Time.deltaTime;
+        if (pathCheckTimer < 0)
+        {
+
+            pathCheckTimer = 2f;
+            isBerserk = forceBerserk || !CheckPath();
+        }
+
+        if (!agent.pathPending)
+        {
+            distanceToDestination = agent.remainingDistance;
+        }
     }
 
     protected override void OnDisable()
@@ -40,11 +59,11 @@ public class Enemy : Fighter
         {
             spawn = GridManager.Instance.GetSpawnPoint();
             agent.Warp(spawn.position);
-            agent.enabled = true;
-            SetDestination(GridManager.Instance.GetDestination());
+            //agent.enabled = true;
+            //SetDestination(GridManager.Instance.GetDestination());
         }
 
-        agent.isStopped = false;
+        //agent.isStopped = false;
     }
 
     protected override void Attack()
@@ -61,11 +80,10 @@ public class Enemy : Fighter
         agent.SetDestination(destination.position);
     }
 
-/*    public override void SetSpeed(float modifier)
+    public void ForceBerserk(bool toggle = true)
     {
-        base.SetSpeed(modifier);
-        
-    }*/
+        forceBerserk = toggle;
+    }
 
     //TODO param to spawn gibs?
     public override void Die(bool money = true)
@@ -77,7 +95,7 @@ public class Enemy : Fighter
             //give cash
             GameState.Instance.GetMoney(price);
         }
-
+        agent.Warp(spawn.position); //move enemy back to spawn before it's death
         base.Die();
 
         //move back to spawn
@@ -85,28 +103,20 @@ public class Enemy : Fighter
 
     }
 
+    //getters
     public bool CheckPath()
     {
         return !(agent.pathStatus == NavMeshPathStatus.PathPartial);
     }
-
-    // Update is called once per frame
-    protected override void Update()
+    public virtual int GetGameStateID()
     {
-        base.Update();
+        return gameStateReference;
+    }
 
-        pathCheckTimer -= Time.deltaTime;
-        if (pathCheckTimer < 0)
-        {
-            
-            pathCheckTimer = 2f;
-            isBerserk = !CheckPath();
-        }
-
-        if (!agent.pathPending)
-        {
-            distanceToDestination = agent.remainingDistance;
-        }
+    //setters
+    public virtual void SetGameStateID(int id)
+    {
+        gameStateReference = id;
     }
 
 }

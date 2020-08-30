@@ -352,6 +352,17 @@ public abstract class Fighter : MonoBehaviour
         Damage(target, true);
     }
 
+    //true damage
+    public virtual bool GetDamaged(float amount) 
+    {
+        currentHealth -= damageAmount;
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+
+        return true;
+    }
     public virtual bool GetDamaged(DamageMatrix attackMatrix, bool heal = false)
     {
 
@@ -365,8 +376,6 @@ public abstract class Fighter : MonoBehaviour
             }
 
         }
-
-        
 
         //foreach attack matrix type of damage that is not 0 - trigger the effect mb?
         damageAmount = attackMatrix.CalcualateDamage(attackMatrix);
@@ -401,8 +410,6 @@ public abstract class Fighter : MonoBehaviour
         {
             fighter.RemoveTarget(this);
         }
-
-
 
         fighterParent.gameObject.SetActive(false);
         //overriden for tower and enemy, enqueues towers/enemies and signals the towers
@@ -478,6 +485,10 @@ public abstract class Fighter : MonoBehaviour
     {
         return currentHealth;
     }
+    public virtual float GetCooldown()
+    {
+        return Mathf.Clamp(timeFromLastShot / shotCooldown, 0, 1f);
+    }
 
     public virtual float GetDistance()
     {
@@ -519,6 +530,7 @@ public abstract class Fighter : MonoBehaviour
     //setters
     public virtual void ToggleInFocus(bool toggle) { inFocus = toggle; }
     public virtual void SetTargetingMode(TargetingModes m) { targetingMode = m; }
+    public virtual void SetTargetType(System.Type type) { targetType = type; }
     public virtual void SetName(string nameString) { fighterName = nameString; }
     public virtual void SetAttackType(AttackTypes t) {attackType = t; }
     public virtual void AddStatusEffect(StatusEffect effect, int amount = 1)

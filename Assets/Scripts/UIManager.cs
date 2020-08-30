@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Policy;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -52,6 +53,11 @@ public class UIManager : MonoBehaviour
     [Header("Wave Info")]
     public GameObject wavesCounter;
     public GameObject nextWave;
+    public TextMeshProUGUI waveMessage;
+    public TextMeshProUGUI waveTimer;
+    bool awaitingWave = false;
+    int currentWave = 0;
+    float timeLeft = 0;
 
     [Header("Controls")]
     public Image restartButton;
@@ -85,6 +91,12 @@ public class UIManager : MonoBehaviour
         {
             surroundParent.Rotate(0, Time.deltaTime * 10f, 0, Space.Self);
         }
+
+        if (awaitingWave)
+        {
+            timeLeft -= Time.deltaTime;
+            waveTimer.text = "Wave " + currentWave + " in " + TimeSpan.FromSeconds(timeLeft).ToString("mm:ss");
+        }
     }
 
     public void InitializeBuildUI()
@@ -101,15 +113,27 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void InitializeWaveUI()
-    {
-
-    }
-
     public void InitializeGameStateUI(int cash, int waves)
     {
         coinCounterText.text = cash.ToString();
     }
+
+    public void ToggleWaveTimer(bool active = true)
+    {
+        waveMessage.gameObject.SetActive(!active);
+        waveTimer.gameObject.SetActive(active);
+        awaitingWave = active;
+    }
+    public void UpdateWaveInfo(int wave, float time = 0)
+    {
+        currentWave = wave;
+        timeLeft = time;
+    }
+    public void ChangeWaveText(string waveText)
+    {
+        waveMessage.text = waveText;
+    }
+
 
     public void UnTrackFighter()
     {
@@ -128,6 +152,8 @@ public class UIManager : MonoBehaviour
         fighterUIInteractive.SetActive(interactive);
         fighterUIStatic.SetActive(!interactive);
         activeFighter = fighter;
+        SetHP(activeFighter.GetHealth());
+        SetCD(activeFighter.GetCooldown());
         SetTargetingMode(activeFighter.GetTargetingMode());
         fighterParent = whereIs.GetParent();
 

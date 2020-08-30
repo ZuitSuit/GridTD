@@ -2,24 +2,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 public class GridManager : MonoBehaviour
 {
     public static GridManager Instance;
 
+    [Header("Cell prefabs")]
     public GameObject GridCellPrefab;
     public GameObject GridCellSwampPrefab;
-
-    public GameObject TowerPrefab; //for testing remove later
-
-    public Transform GridParent;
+    
     List<GameObject> GridCells = new List<GameObject>();
     List<CellController> CellControllers = new List<CellController>();
-    List<GameObject> GridTowers = new List<GameObject>();
+    List<GameObject> GridTowers = new List<GameObject>(); //active towers 1:1 with cells
+    List<GameObject> GridEnemies = new List<GameObject>(); //active enemies
+
+    //track queues by prefab ids in gamestate
+    Dictionary<int, Queue<GameObject>> EnemyPools = new Dictionary<int, Queue<GameObject>>();
+    Dictionary<int, Queue<GameObject>> TowerPools = new Dictionary<int, Queue<GameObject>>();
+    Queue<int> currentWave = new Queue<int>(); // Queue of GameState ids for enemies
+
+    [Header("GO parents")]
+    public Transform GridParent;
     public Transform EnemyParent;
     public Transform TowerParent;
     public Transform EffectsParent;
 
+    [Header("Path endpoints")]
     public Transform destination;
     public Transform spawnPoint;
     //test object
@@ -27,11 +36,14 @@ public class GridManager : MonoBehaviour
 
     Ray ray;
     RaycastHit hit;
-    public LayerMask FighterVision; //to ignore fighter vision when placing/selecting
+    public LayerMask FighterVision; 
     CellController cellController;
+
+    //buffers
     Fighter fighterBuffer;
     Tower towerBuffer;
     WhereIs whereIsBuffer;
+    GameObject gameObjectBuffer;
 
     Fighter fighterInFocus;
 
@@ -60,36 +72,10 @@ public class GridManager : MonoBehaviour
                 particleSystemBuffer.name = particleNameBuffer;
                 particleQueueBuffer.Enqueue(particleSystemBuffer);
             }
+
             particleQueues.Add(particleNameBuffer, particleQueueBuffer);
         }
 
-        //grid generation
-        int gridX = 10;
-        int gridZ = 10;
-        //get grid array from the scene
-
-        for (int ix = 0; ix < gridX; ix++)
-        {
-            for (int iz = 0; iz < gridZ; iz++)
-            {
-                GameObject cell = Instantiate(Random.Range(0, 7) == 1 ? GridCellSwampPrefab : GridCellPrefab);
-                cell.name = "cell_" + ix + ":" + iz;
-                cell.transform.SetParent(GridParent);
-                cell.transform.localPosition = new Vector3(ix * 10f, 0, iz * 10f);
-                GridCells.Add(cell);
-                CellControllers.Add(cell.GetComponentInChildren<CellController>());
-                GridTowers.Add(null);
-                cell.GetComponentInChildren<CellController>().SetGridReference(GridCells.Count-1);
-            }
-        }
-
-        GridParent.GetComponent<NavMeshSurface>().BuildNavMesh();
-        GridParent.position = new Vector3(-0.5f * gridX * 10f, 0, -0.5f * gridZ * 10f);
-
-        spawnPoint.localPosition = GridCells[0].transform.localPosition;
-        destination.localPosition = GridCells[GridCells.Count - 1].transform.localPosition;
-
-        StartCoroutine(EnemySpawn());
     }
 
     // Update is called once per frame
@@ -120,6 +106,36 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    public void GenerateGrid(int gridX, int gridZ)
+    {
+        //get grid array from the scene
+
+        for (int ix = 0; ix < gridX; ix++)
+        {
+            for (int iz = 0; iz < gridZ; iz++)
+            {
+                GameObject cell = Instantiate(Random.Range(0, 7) == 1 ? GridCellSwampPrefab : GridCellPrefab);
+                cell.name = "cell_" + ix + ":" + iz;
+                cell.transform.SetParent(GridParent);
+                cell.transform.localPosition = new Vector3(ix * 10f, 0, iz * 10f);
+                GridCells.Add(cell);
+                CellControllers.Add(cell.GetComponentInChildren<CellController>());
+                cell.GetComponentInChildren<CellController>().SetGridReference(GridCells.Count - 1);
+            }
+        }
+
+        GridParent.GetComponent<NavMeshSurface>().BuildNavMesh();
+        GridParent.position = new Vector3(-0.5f * gridX * 10f, 0, -0.5f * gridZ * 10f);
+
+        spawnPoint.localPosition = GridCells[0].transform.localPosition;
+        destination.localPosition = GridCells[GridCells.Count - 1].transform.localPosition;
+    }
+
+    public void InitializeWave(Queue<int> enemies)
+    {
+        currentWave = enemies;
+    }
+
     //getters
     public CellController GetCell(int id) { return CellControllers[id]; }
     public Transform GetSpawnPoint() { return spawnPoint; }
@@ -140,8 +156,8 @@ public class GridManager : MonoBehaviour
             particleSystemBuffer.Play();
             StartCoroutine(EnqueueParticle(particleSystemBuffer));
         }
-        
     }
+
     public bool Build(int gridID, int towerID)
     {
         if (CellControllers[gridID].CanBuild() && GameState.Instance.CanAfford(towerID, true))
@@ -176,9 +192,28 @@ public class GridManager : MonoBehaviour
         if (particleQueues.ContainsKey(particleSystem.name))
         {
             particleQueues[particleSystem.name].Enqueue(particleSystem);
-
         }
     }
+
+    public bool SpawnEnemy()
+    {
+        gameObjectBuffer = EnemyPools[currentWave.Dequeue()].Dequeue();
+        gameObjectBuffer.transform.SetParent(EnemyParent);
+        gameObjectBuffer.SetActive(true);
+
+        return currentWave.Count == 0;
+    }
+
+    public void DespawnEnemy(GameObject enemy, int gameStateID)
+    {
+        EnemyPools[gameStateID].Enqueue(enemy);
+    }
+
+    public void PopulateEnemyPool(int id, Queue<GameObject> pool)
+    {
+        EnemyPools[id] = pool;
+    }
+    //TODO remove - used for testing
     IEnumerator EnemySpawn()
     {
     
