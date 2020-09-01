@@ -56,13 +56,9 @@ public class GridManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        
-    }
 
-    void Start()
-    {
         //particle system setup
-        foreach(ParticleSystem particle in particlePrefabs)
+        foreach (ParticleSystem particle in particlePrefabs)
         {
             particleQueueBuffer = new Queue<ParticleSystem>();
             for (int i = 0; i < 50; i++)
@@ -75,6 +71,13 @@ public class GridManager : MonoBehaviour
 
             particleQueues.Add(particleNameBuffer, particleQueueBuffer);
         }
+
+        GenerateGrid(6, 6);
+    }
+
+    void Start()
+    {
+
 
     }
 

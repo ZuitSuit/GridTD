@@ -59,11 +59,11 @@ public class Enemy : Fighter
         {
             spawn = GridManager.Instance.GetSpawnPoint();
             agent.Warp(spawn.position);
-            //agent.enabled = true;
-            //SetDestination(GridManager.Instance.GetDestination());
+            agent.enabled = true;
+            SetDestination(GridManager.Instance.GetDestination());
         }
 
-        //agent.isStopped = false;
+        agent.isStopped = false;
     }
 
     protected override void Attack()

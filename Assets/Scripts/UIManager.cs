@@ -95,7 +95,7 @@ public class UIManager : MonoBehaviour
         if (awaitingWave)
         {
             timeLeft -= Time.deltaTime;
-            waveTimer.text = "Wave " + currentWave + " in " + TimeSpan.FromSeconds(timeLeft).ToString("mm:ss");
+            waveTimer.text = "Wave " + (currentWave+2) + " in " + string.Format("{0:00}:{1:00}", Mathf.FloorToInt(timeLeft / 60), Mathf.FloorToInt(timeLeft % 60));
         }
     }
 
@@ -240,6 +240,10 @@ public class UIManager : MonoBehaviour
     public void SetCoinCounter(int coins)
     {
         coinCounterText.text = coins.ToString();
+    }
+    public void SetCurrentWave(int wave)
+    {
+        currentWave = wave;
     }
 
     public void SwitchTargetingMode()

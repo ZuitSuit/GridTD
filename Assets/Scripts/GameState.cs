@@ -49,8 +49,6 @@ public class GameState : MonoBehaviour
 
     private void Start()
     {
-
-
         for (int i = 0; i < towerPrefabs.Count; i++)
         {
             whereIsBuffer = towerPrefabs[i].GetComponentInChildren<WhereIs>();
@@ -60,7 +58,7 @@ public class GameState : MonoBehaviour
 
         UIManager.Instance.InitializeBuildUI();
         UIManager.Instance.InitializeGameStateUI(money, waveSpawns.Count);
-        GridManager.Instance.GenerateGrid(gridX, gridZ);
+        //GridManager.Instance.GenerateGrid(gridX, gridZ);
 
         for (int i = 0; i < waveSpawns.Count; i++)
         {
@@ -105,23 +103,8 @@ public class GameState : MonoBehaviour
 
         }
 
+        StartCoroutine(GenerateEnemiyPrefabs());
         //queue of max enemies within each wave
-        foreach (KeyValuePair<GameObject, int> entry in maxEnemies)
-        {
-            enemyBuffer = (Enemy)entry.Key.GetComponent<WhereIs>().fighter;
-            queueGameObjectBuffer = new Queue<GameObject>();
-            for (int i = 0; i < entry.Value; i++)
-            {
-                gameObjectBuffer = Instantiate(entry.Key);
-                gameObjectBuffer.SetActive(false);
-                queueGameObjectBuffer.Enqueue(gameObjectBuffer);
-            }
-
-            GridManager.Instance.PopulateEnemyPool(enemyBuffer.GetGameStateID(), queueGameObjectBuffer);
-        }
-
-        Restart();
-
     }
 
     private void Update()
@@ -136,6 +119,7 @@ public class GameState : MonoBehaviour
                 ChangeState(GameStates.WaveActive);
                 untilNextWave = betweenWaves;
                 currentWave++;
+                UIManager.Instance.SetCurrentWave(currentWave);
                 GridManager.Instance.InitializeWave(waveQueues[currentWave]);
                 spawnsAvailable = true;
             }
@@ -152,6 +136,27 @@ public class GameState : MonoBehaviour
         }
         //start next spawn
         //
+    }
+
+    public IEnumerator GenerateEnemiyPrefabs()
+    {
+        yield return new WaitForSeconds(1);
+        foreach (KeyValuePair<GameObject, int> entry in maxEnemies)
+        {
+            enemyBuffer = (Enemy)entry.Key.GetComponent<WhereIs>().fighter;
+            queueGameObjectBuffer = new Queue<GameObject>();
+            for (int i = 0; i < entry.Value; i++)
+            {
+                gameObjectBuffer = Instantiate(entry.Key);
+                gameObjectBuffer.SetActive(false);
+                queueGameObjectBuffer.Enqueue(gameObjectBuffer);
+            }
+
+            GridManager.Instance.PopulateEnemyPool(enemyBuffer.GetGameStateID(), queueGameObjectBuffer);
+        }
+
+        ChangeState(GameStates.Waveincoming);
+        Restart();
     }
 
     public void ChangeState(GameStates state)
