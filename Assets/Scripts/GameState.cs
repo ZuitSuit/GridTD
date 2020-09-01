@@ -26,11 +26,11 @@ public class GameState : MonoBehaviour
     int money = 100; //starting cash
     public List<SpawnListWrapper> waveSpawns; //wave info
     List<Queue<int>> waveQueues = new List<Queue<int>>();
-    int currentWave = -1;
+    int currentWave = 0;
     float untilNextWave;
     float untilNextSpawn;
     bool spawnsAvailable;
-    public float betweenWaves = 20f;
+    public float betweenWaves = 3;
     public float betweenSpawns = 2f;
 
     public int gridX = 7;
@@ -73,11 +73,11 @@ public class GameState : MonoBehaviour
                     enemyBuffer.SetGameStateID(enemyPrefabs.Count - 1);
                 }
 
-                waveQueues[i].Enqueue(enemyBuffer.GetGameStateID());
-
                 maxEnemiesWave = new Dictionary<GameObject, int>();
                 for (int amount = 0; amount < enemy.amount; amount++)
                 {
+                    waveQueues[i].Enqueue(enemyBuffer.GetGameStateID());
+
                     if (maxEnemiesWave.ContainsKey(enemy.prefab))
                     {
                         maxEnemiesWave[enemy.prefab] += enemy.amount;
@@ -118,7 +118,6 @@ public class GameState : MonoBehaviour
             {
                 ChangeState(GameStates.WaveActive);
                 untilNextWave = betweenWaves;
-                currentWave++;
                 UIManager.Instance.SetCurrentWave(currentWave);
                 GridManager.Instance.InitializeWave(waveQueues[currentWave]);
                 spawnsAvailable = true;
@@ -131,11 +130,11 @@ public class GameState : MonoBehaviour
             untilNextSpawn -= Time.deltaTime;
             if (untilNextSpawn < 0)
             {
+                untilNextSpawn = betweenSpawns;
                 spawnsAvailable = GridManager.Instance.SpawnEnemy(); // checks if there is anything left in the queue for the current wave
             }
         }
-        //start next spawn
-        //
+
     }
 
     public IEnumerator GenerateEnemiyPrefabs()
@@ -159,6 +158,18 @@ public class GameState : MonoBehaviour
         Restart();
     }
 
+    public void NextWave()
+    {
+        currentWave++;
+
+        if(currentWave > (waveQueues.Count-1))
+        {
+            Win();
+            return;
+        }
+
+        ChangeState(GameStates.Waveincoming);
+    }
     public void ChangeState(GameStates state)
     {
         currentState = state;
@@ -166,7 +177,7 @@ public class GameState : MonoBehaviour
         switch (state)
         {
             case GameStates.WaveActive:
-                UIManager.Instance.ChangeWaveText("Wave " + currentWave + "/" + waveSpawns.Count);
+                UIManager.Instance.ChangeWaveText("Wave " + (currentWave+1) + "/" + waveSpawns.Count);
                 break;
             case GameStates.Won:
                 UIManager.Instance.ChangeWaveText("Won");

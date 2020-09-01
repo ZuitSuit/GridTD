@@ -675,7 +675,7 @@ MonoBehaviour:
     - amount: 1
       prefab: {fileID: 1004073885087342004, guid: 4cb48d67463c96c4ba660c8a62a90e1e,
         type: 3}
-  betweenWaves: 20
+  betweenWaves: 3
   betweenSpawns: 2
   gridX: 7
   gridZ: 7
@@ -3596,8 +3596,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.22258809, g: 0.55244076, b: 0.7735849, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

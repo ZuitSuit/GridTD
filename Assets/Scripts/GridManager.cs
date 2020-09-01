@@ -122,6 +122,7 @@ public class GridManager : MonoBehaviour
                 cell.transform.SetParent(GridParent);
                 cell.transform.localPosition = new Vector3(ix * 10f, 0, iz * 10f);
                 GridCells.Add(cell);
+                GridTowers.Add(null);
                 CellControllers.Add(cell.GetComponentInChildren<CellController>());
                 cell.GetComponentInChildren<CellController>().SetGridReference(GridCells.Count - 1);
             }
@@ -198,18 +199,30 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    //fires on every enemy death
+    public void CheckWaveEnd()
+    {
+        Debug.Log(GridEnemies.Count);
+        if (GridEnemies.Count == 0)
+        {
+            GameState.Instance.NextWave();
+        }
+    }
+
     public bool SpawnEnemy()
     {
         gameObjectBuffer = EnemyPools[currentWave.Dequeue()].Dequeue();
         gameObjectBuffer.transform.SetParent(EnemyParent);
         gameObjectBuffer.SetActive(true);
+        GridEnemies.Add(gameObjectBuffer);
 
-        return currentWave.Count == 0;
+        return currentWave.Count > 0;
     }
 
     public void DespawnEnemy(GameObject enemy, int gameStateID)
     {
         EnemyPools[gameStateID].Enqueue(enemy);
+        if(GridEnemies.Contains(enemy)) GridEnemies.Remove(enemy);
     }
 
     public void PopulateEnemyPool(int id, Queue<GameObject> pool)

@@ -96,8 +96,10 @@ public class Enemy : Fighter
             GameState.Instance.GetMoney(price);
         }
         agent.Warp(spawn.position); //move enemy back to spawn before it's death
-        base.Die();
 
+        GridManager.Instance.DespawnEnemy(GetFighterParent().gameObject, gameStateReference);
+        GridManager.Instance.CheckWaveEnd();
+        base.Die();
         //move back to spawn
         //doesn't clear the cell on which it died
 

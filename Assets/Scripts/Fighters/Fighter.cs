@@ -76,11 +76,13 @@ public abstract class Fighter : MonoBehaviour
     public string fighterName;
     public Sprite fighterIcon;
     Transform fighterParent;
+    WhereIs whereIs;
 
 
     protected virtual void Awake()
     {
-        fighterParent = gameObject.GetComponent<WhereIs>().GetParent();
+        whereIs = gameObject.GetComponent<WhereIs>();
+        fighterParent = whereIs.GetParent();
         ResetStats();
     }
 
@@ -459,6 +461,11 @@ public abstract class Fighter : MonoBehaviour
     {
         if (fighterType == null) fighterType = GetFighterClass();
         return fighterType;
+    }
+
+    public virtual Transform GetFighterParent()
+    {
+        return fighterParent;
     }
 
     public virtual int GetPrice() { return price; }

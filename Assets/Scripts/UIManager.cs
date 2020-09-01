@@ -95,7 +95,7 @@ public class UIManager : MonoBehaviour
         if (awaitingWave)
         {
             timeLeft -= Time.deltaTime;
-            waveTimer.text = "Wave " + (currentWave+2) + " in " + string.Format("{0:00}:{1:00}", Mathf.FloorToInt(timeLeft / 60), Mathf.FloorToInt(timeLeft % 60));
+            waveTimer.text = "Wave " + (currentWave+1) + " in " + string.Format("{0:00}:{1:00}", Mathf.FloorToInt(timeLeft / 60), Mathf.FloorToInt(timeLeft % 60));
         }
     }
 
