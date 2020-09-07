@@ -211,7 +211,7 @@ public class GameState : MonoBehaviour
             return;
         }
 
-        GridManager.Instance.InitializeWave(waveQueues[currentWave + 1]);
+        GridManager.Instance.InitializeWave(waveQueues[currentWave]);
 
         //TODO restart the whole thing
 

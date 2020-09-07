@@ -665,20 +665,17 @@ MonoBehaviour:
   - {fileID: 8423244805229763778, guid: 420f3ae47349fb74592db553e2a2b27f, type: 3}
   waveSpawns:
   - spawnList:
-    - amount: 3
-      prefab: {fileID: 1004073885087342004, guid: 4cb48d67463c96c4ba660c8a62a90e1e,
-        type: 3}
-    - amount: 1
-      prefab: {fileID: 1004073885087342004, guid: 4cb48d67463c96c4ba660c8a62a90e1e,
+    - amount: 6
+      prefab: {fileID: 1004073885087342004, guid: 9f1e458444aed0a488d8bcc4b301c581,
         type: 3}
   - spawnList:
-    - amount: 1
-      prefab: {fileID: 1004073885087342004, guid: 4cb48d67463c96c4ba660c8a62a90e1e,
+    - amount: 3
+      prefab: {fileID: 1004073885087342004, guid: 9f1e458444aed0a488d8bcc4b301c581,
         type: 3}
-  betweenWaves: 3
-  betweenSpawns: 2
-  gridX: 7
-  gridZ: 7
+  betweenWaves: 5
+  betweenSpawns: 3
+  gridX: 10
+  gridZ: 10
 --- !u!1 &132465634
 GameObject:
   m_ObjectHideFlags: 0

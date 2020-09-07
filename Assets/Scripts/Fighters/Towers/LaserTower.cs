@@ -14,6 +14,7 @@ public class LaserTower : Tower
     protected override void Awake()
     {
         base.Awake();
+        shotCooldown = 5f;
     }
 
     // Update is called once per frame
