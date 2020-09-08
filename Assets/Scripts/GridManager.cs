@@ -11,11 +11,12 @@ public class GridManager : MonoBehaviour
     [Header("Cell prefabs")]
     public GameObject GridCellPrefab;
     public GameObject GridCellSwampPrefab;
-    
+
     List<GameObject> GridCells = new List<GameObject>();
     List<CellController> CellControllers = new List<CellController>();
     List<GameObject> GridTowers = new List<GameObject>(); //active towers 1:1 with cells
     List<GameObject> GridEnemies = new List<GameObject>(); //active enemies
+    List<NavMeshSurface> GridSurfaces = new List<NavMeshSurface>(); //list of surface components for different agents
 
     //track queues by prefab ids in gamestate
     Dictionary<int, Queue<GameObject>> EnemyPools = new Dictionary<int, Queue<GameObject>>();
@@ -31,12 +32,10 @@ public class GridManager : MonoBehaviour
     [Header("Path endpoints")]
     public Transform destination;
     public Transform spawnPoint;
-    //test object
-    public GameObject enemyPrefab;
 
     Ray ray;
     RaycastHit hit;
-    public LayerMask FighterVision; 
+    public LayerMask FighterVision;
     CellController cellController;
 
     //buffers
@@ -44,6 +43,7 @@ public class GridManager : MonoBehaviour
     Tower towerBuffer;
     WhereIs whereIsBuffer;
     GameObject gameObjectBuffer;
+    NavMeshSurface navmeshSurfaceBuffer;
 
     Fighter fighterInFocus;
 
@@ -72,12 +72,12 @@ public class GridManager : MonoBehaviour
             particleQueues.Add(particleNameBuffer, particleQueueBuffer);
         }
 
-        GenerateGrid(6, 6);
+
     }
 
     void Start()
     {
-
+        GenerateGrid(7, 7);
 
     }
 
@@ -85,7 +85,7 @@ public class GridManager : MonoBehaviour
     void Update()
     {
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Input.GetButtonDown("Fire")) 
+        if (Input.GetButtonDown("Fire"))
         {
             if (Physics.Raycast(ray, out hit, 1000f, FighterVision - 5)) //-1 to invert mask, -4 to ignore raycast
             {
@@ -128,7 +128,22 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        GridParent.GetComponent<NavMeshSurface>().BuildNavMesh();
+        List<int> agents = GameState.Instance.GetGridAgents();
+        for (int i = 0; i < agents.Count; i++)
+        {
+
+            navmeshSurfaceBuffer = GridParent.gameObject.AddComponent(typeof(NavMeshSurface)) as NavMeshSurface;
+            navmeshSurfaceBuffer.agentTypeID = agents[i];
+            navmeshSurfaceBuffer.layerMask = 1 << LayerMask.NameToLayer("GridGround");
+            navmeshSurfaceBuffer.useGeometry = NavMeshCollectGeometry.RenderMeshes;
+            navmeshSurfaceBuffer.BuildNavMesh();
+            GridSurfaces.Add(navmeshSurfaceBuffer);
+            StartCoroutine(CheckGridGeneration(GridSurfaces.Count - 1));
+
+        }
+
+
+
         GridParent.position = new Vector3(-0.5f * gridX * 10f, 0, -0.5f * gridZ * 10f);
 
         spawnPoint.localPosition = GridCells[0].transform.localPosition;
@@ -166,7 +181,7 @@ public class GridManager : MonoBehaviour
     {
         if (CellControllers[gridID].CanBuild() && GameState.Instance.CanAfford(towerID, true))
         {
-            
+
             GameObject tower = Instantiate(GameState.Instance.GetTowerPrefab(towerID));
             tower.transform.SetParent(TowerParent);
             tower.transform.position = CellControllers[gridID].transform.position;
@@ -222,26 +237,25 @@ public class GridManager : MonoBehaviour
     public void DespawnEnemy(GameObject enemy, int gameStateID)
     {
         EnemyPools[gameStateID].Enqueue(enemy);
-        if(GridEnemies.Contains(enemy)) GridEnemies.Remove(enemy);
+        if (GridEnemies.Contains(enemy)) GridEnemies.Remove(enemy);
     }
 
     public void PopulateEnemyPool(int id, Queue<GameObject> pool)
     {
         EnemyPools[id] = pool;
     }
-    //TODO remove - used for testing
-    IEnumerator EnemySpawn()
-    {
-    
-        yield return new WaitForSeconds(1f); //wait for navmesh to generate - do this properly
-        GameObject testEnemy = Instantiate(enemyPrefab);
-        testEnemy.transform.SetParent(EnemyParent);
-        testEnemy.SetActive(true);
-        //testEnemy.GetComponentInChildren<Fighter>().SpawnCheck();
 
-        testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = false;
-        testEnemy.GetComponentInChildren<CapsuleCollider>().enabled = true;
-        yield return new WaitForSeconds(3f);
-        StartCoroutine(EnemySpawn());
+    public IEnumerator CheckGridGeneration(int id)
+    {
+        
+        yield return new WaitForSeconds(0.1f);
+        if (GridSurfaces[id].navMeshDataInstance.valid)
+        {
+            GameState.Instance.NavMeshGenerated();
+        }
+        else
+        {
+            StartCoroutine(CheckGridGeneration(id));
+        }
     }
 }

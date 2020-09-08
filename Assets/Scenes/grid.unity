@@ -670,7 +670,7 @@ MonoBehaviour:
         type: 3}
   - spawnList:
     - amount: 3
-      prefab: {fileID: 1004073885087342004, guid: 9f1e458444aed0a488d8bcc4b301c581,
+      prefab: {fileID: 1004073885087342004, guid: 4545a58978b53884d8bb79bc45e9f906,
         type: 3}
   betweenWaves: 5
   betweenSpawns: 3
@@ -1137,7 +1137,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 425393544}
-  - component: {fileID: 425393545}
   m_Layer: 0
   m_Name: GridParent
   m_TagString: Untagged
@@ -1161,35 +1160,6 @@ Transform:
   m_Father: {fileID: 881167714}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &425393545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 425393543}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AgentTypeID: 0
-  m_CollectObjects: 2
-  m_Size: {x: 10, y: 10, z: 10}
-  m_Center: {x: 0, y: 2, z: 0}
-  m_LayerMask:
-    serializedVersion: 2
-    m_Bits: 256
-  m_UseGeometry: 0
-  m_DefaultArea: 0
-  m_IgnoreNavMeshAgent: 1
-  m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.16666667
-  m_BuildHeightMesh: 0
-  m_NavMeshData: {fileID: 0}
 --- !u!1 &432280779
 GameObject:
   m_ObjectHideFlags: 0
@@ -2284,8 +2254,6 @@ MonoBehaviour:
   EffectsParent: {fileID: 1571241688}
   destination: {fileID: 1055641975}
   spawnPoint: {fileID: 771338327}
-  enemyPrefab: {fileID: 1004073885087342004, guid: 4cb48d67463c96c4ba660c8a62a90e1e,
-    type: 3}
   FighterVision:
     serializedVersion: 2
     m_Bits: 1024

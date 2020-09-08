@@ -80,6 +80,7 @@ namespace UnityEngine.AI
         public NavMeshData navMeshData { get { return m_NavMeshData; } set { m_NavMeshData = value; } }
 
         // Do not serialize - runtime only state.
+        public NavMeshDataInstance navMeshDataInstance { get { return m_NavMeshDataInstance; } }
         NavMeshDataInstance m_NavMeshDataInstance;
         Vector3 m_LastPosition = Vector3.zero;
         Quaternion m_LastRotation = Quaternion.identity;

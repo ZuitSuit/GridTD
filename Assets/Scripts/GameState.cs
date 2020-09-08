@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.AI;
 
 public class GameState : MonoBehaviour
 {
@@ -13,12 +14,14 @@ public class GameState : MonoBehaviour
     List<GameObject> enemyPrefabs = new List<GameObject>(); //gotten from waves
     private List<Tower> towerScripts = new List<Tower>();
     private List<Enemy> enemyScripts = new List<Enemy>();
+    List<int> GridAgents = new List<int>(); //list of agent types
 
     //buffer variables
     Fighter fighterBuffer;
     Enemy enemyBuffer;
     WhereIs whereIsBuffer;
     GameObject gameObjectBuffer;
+    NavMeshAgent agentBuffer;
     Queue<GameObject> queueGameObjectBuffer = new Queue<GameObject>();
     Dictionary<GameObject, int> maxEnemies = new Dictionary<GameObject, int>(); //GO, amount. Used to track how many simultaneous enemies can spawn
     Dictionary<GameObject, int> maxEnemiesWave = new Dictionary<GameObject, int>(); //^ for check within wave
@@ -35,6 +38,8 @@ public class GameState : MonoBehaviour
 
     public int gridX = 7;
     public int gridZ = 7;
+    bool gridGenerated = false;
+    int agentNavmeshCount = 0;
 
     GameStates currentState = GameStates.Waveincoming;
 
@@ -45,20 +50,6 @@ public class GameState : MonoBehaviour
 
         untilNextWave = betweenWaves;
         untilNextSpawn = betweenSpawns;
-    }
-
-    private void Start()
-    {
-        for (int i = 0; i < towerPrefabs.Count; i++)
-        {
-            whereIsBuffer = towerPrefabs[i].GetComponentInChildren<WhereIs>();
-            fighterBuffer = whereIsBuffer.GetFighter();
-            towerScripts.Add((Tower)whereIsBuffer.GetFighter());
-        }
-
-        UIManager.Instance.InitializeBuildUI();
-        UIManager.Instance.InitializeGameStateUI(money, waveSpawns.Count);
-        //GridManager.Instance.GenerateGrid(gridX, gridZ);
 
         for (int i = 0; i < waveSpawns.Count; i++)
         {
@@ -66,7 +57,11 @@ public class GameState : MonoBehaviour
 
             foreach (EnemySpawn enemy in waveSpawns[i].spawnList)
             {
-                enemyBuffer = (Enemy)enemy.prefab.GetComponent<WhereIs>().fighter;
+                enemyBuffer = (Enemy)enemy.prefab.GetComponent<WhereIs>().GetFighter();
+                agentBuffer = null;
+                agentBuffer = enemy.prefab.GetComponent<NavMeshAgent>();
+                if (!GridAgents.Contains(agentBuffer.agentTypeID)) GridAgents.Add(agentBuffer.agentTypeID);
+
                 if (!enemyPrefabs.Contains(enemy.prefab))
                 {
                     enemyPrefabs.Add(enemy.prefab);
@@ -102,9 +97,21 @@ public class GameState : MonoBehaviour
             }
 
         }
+    }
 
-        StartCoroutine(GenerateEnemiyPrefabs());
-        //queue of max enemies within each wave
+    private void Start()
+    {
+        for (int i = 0; i < towerPrefabs.Count; i++)
+        {
+            whereIsBuffer = towerPrefabs[i].GetComponentInChildren<WhereIs>();
+            fighterBuffer = whereIsBuffer.GetFighter();
+            towerScripts.Add((Tower)whereIsBuffer.GetFighter());
+        }
+        
+        UIManager.Instance.InitializeBuildUI();
+        UIManager.Instance.InitializeGameStateUI(money, waveSpawns.Count);
+
+        StartCoroutine(GenerateEnemyPrefabs());
     }
 
     private void Update()
@@ -137,9 +144,25 @@ public class GameState : MonoBehaviour
 
     }
 
-    public IEnumerator GenerateEnemiyPrefabs()
+    public bool IsGridGenerated()
     {
-        yield return new WaitForSeconds(1);
+        return gridGenerated;
+    }
+
+    public void NavMeshGenerated()
+    {
+        Debug.Log("yee1t");
+        agentNavmeshCount++;
+        if(agentNavmeshCount >= GridAgents.Count)
+        {
+            gridGenerated = true;
+            Debug.Log("ye2et");
+        }
+    }
+
+    public IEnumerator GenerateEnemyPrefabs()
+    {
+        yield return new WaitUntil(() => gridGenerated);
         foreach (KeyValuePair<GameObject, int> entry in maxEnemies)
         {
             enemyBuffer = (Enemy)entry.Key.GetComponent<WhereIs>().fighter;
@@ -227,6 +250,7 @@ public class GameState : MonoBehaviour
     }
 
     //getters
+    public List<int> GetGridAgents() { return GridAgents; }
     public GameObject GetTowerPrefab(int id) { return towerPrefabs[id]; }
     public List<Tower> GetTowerScripts() { return towerScripts; }
     public bool CanAfford(int towerID, bool spend = false)
