@@ -56,6 +56,11 @@ public class Core : Fighter
         GameState.Instance.Lose();
     }
 
+    public override void ResetStats()
+    {
+        base.ResetStats();
+    }
+
     public enum CoreTypes
     {
         HealthToDamage,

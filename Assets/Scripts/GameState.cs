@@ -10,7 +10,9 @@ public class GameState : MonoBehaviour
     public static GameState Instance;
 
     //prefabs
-    public List<GameObject> towerPrefabs; //available towers 
+    public List<GameObject> towerPrefabs; //available towers
+    public GameObject corePrefab;
+    private GameObject core = null;
     List<GameObject> enemyPrefabs = new List<GameObject>(); //gotten from waves
     private List<Tower> towerScripts = new List<Tower>();
     private List<Enemy> enemyScripts = new List<Enemy>();
@@ -36,8 +38,7 @@ public class GameState : MonoBehaviour
     public float betweenWaves = 3;
     public float betweenSpawns = 2f;
 
-    public int gridX = 7;
-    public int gridZ = 7;
+    public Vector2Int gridSize;
     bool gridGenerated = false;
     int agentNavmeshCount = 0;
 
@@ -151,34 +152,12 @@ public class GameState : MonoBehaviour
 
     public void NavMeshGenerated()
     {
-        Debug.Log("yee1t");
+
         agentNavmeshCount++;
         if(agentNavmeshCount >= GridAgents.Count)
         {
             gridGenerated = true;
-            Debug.Log("ye2et");
         }
-    }
-
-    public IEnumerator GenerateEnemyPrefabs()
-    {
-        yield return new WaitUntil(() => gridGenerated);
-        foreach (KeyValuePair<GameObject, int> entry in maxEnemies)
-        {
-            enemyBuffer = (Enemy)entry.Key.GetComponent<WhereIs>().fighter;
-            queueGameObjectBuffer = new Queue<GameObject>();
-            for (int i = 0; i < entry.Value; i++)
-            {
-                gameObjectBuffer = Instantiate(entry.Key);
-                gameObjectBuffer.SetActive(false);
-                queueGameObjectBuffer.Enqueue(gameObjectBuffer);
-            }
-
-            GridManager.Instance.PopulateEnemyPool(enemyBuffer.GetGameStateID(), queueGameObjectBuffer);
-        }
-
-        ChangeState(GameStates.Waveincoming);
-        Restart();
     }
 
     public void NextWave()
@@ -216,6 +195,14 @@ public class GameState : MonoBehaviour
         UIManager.Instance.ToggleWaveTimer(state == GameStates.Waveincoming);
     }
 
+    public void PlaceCore()
+    {
+        if (core == null) core = Instantiate(corePrefab);
+        GridManager.Instance.ParentToGrid(core);
+        Vector3 destination = GridManager.Instance.GetDestination().position;
+        core.transform.position = new Vector3(destination.x, destination.y + 5, destination.z);
+        core.GetComponentInChildren<Core>().ResetStats();
+    }
     public void Win()
     {
         ChangeState(GameStates.Won);
@@ -249,8 +236,30 @@ public class GameState : MonoBehaviour
         Application.Quit();
     }
 
+    public IEnumerator GenerateEnemyPrefabs()
+    {
+        yield return new WaitUntil(() => gridGenerated);
+        foreach (KeyValuePair<GameObject, int> entry in maxEnemies)
+        {
+            enemyBuffer = (Enemy)entry.Key.GetComponent<WhereIs>().fighter;
+            queueGameObjectBuffer = new Queue<GameObject>();
+            for (int i = 0; i < entry.Value; i++)
+            {
+                gameObjectBuffer = Instantiate(entry.Key);
+                gameObjectBuffer.SetActive(false);
+                queueGameObjectBuffer.Enqueue(gameObjectBuffer);
+            }
+
+            GridManager.Instance.PopulateEnemyPool(enemyBuffer.GetGameStateID(), queueGameObjectBuffer);
+        }
+
+        ChangeState(GameStates.Waveincoming);
+        Restart();
+    }
+
     //getters
     public List<int> GetGridAgents() { return GridAgents; }
+    public Vector2Int GetGridSize() { return gridSize; }
     public GameObject GetTowerPrefab(int id) { return towerPrefabs[id]; }
     public List<Tower> GetTowerScripts() { return towerScripts; }
     public bool CanAfford(int towerID, bool spend = false)

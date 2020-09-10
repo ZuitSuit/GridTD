@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c36138c5be291ec429e0007977df7f06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tileName: Chess Cell
   navMeshModifier: {fileID: 4364199153033506570}
 --- !u!65 &7650212316576236319
 BoxCollider:

@@ -9,7 +9,14 @@ public class TortoiseEnemy : Enemy
     protected override void Awake()
     {
         base.Awake();
-        AddStatusEffect(new BufferStatus(this, 1, -1f), 10);
+        AddStatusEffect<BufferStatus>(10);
+        
         //tortoise starts with 10 free hits
+    }
+
+    public override void ResetStats()
+    {
+        base.ResetStats();
+        AddStatusEffect<BufferStatus>(10);
     }
 }

@@ -28,7 +28,7 @@ Transform:
   m_GameObject: {fileID: 1004073885087342004}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 0.2, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 3977092724504069034}
   - {fileID: 8953065751216524054}
@@ -70,7 +70,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabParent: {fileID: 1004073885087342027}
-  fighter: {fileID: 1606594478294605431}
+  fighter: {fileID: 1606205179468352702}
   cameraMount: {fileID: 732849040791205223}
 --- !u!54 &3766464163813887918
 Rigidbody:
@@ -147,7 +147,7 @@ Transform:
   m_GameObject: {fileID: 6225434126482966587}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 4, y: 0.8, z: 4}
   m_Children:
   - {fileID: 732849040791205223}
   m_Father: {fileID: 1004073885087342027}
@@ -164,9 +164,9 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5
-  m_Height: 2.0259323
+  m_Height: 0.76
   m_Direction: 1
-  m_Center: {x: 0, y: 0.0014600754, z: 0}
+  m_Center: {x: 0, y: 0.36, z: 0}
 --- !u!114 &3343879188295849868
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabParent: {fileID: 1004073885087342027}
-  fighter: {fileID: 1606594478294605431}
+  fighter: {fileID: 1606205179468352702}
   cameraMount: {fileID: 732849040791205223}
 --- !u!33 &690933016925660291
 MeshFilter:
@@ -240,7 +240,7 @@ GameObject:
   - component: {fileID: 8953065751216524054}
   - component: {fileID: 148060434060254791}
   - component: {fileID: 2496555711219387120}
-  - component: {fileID: 1606594478294605431}
+  - component: {fileID: 1606205179468352702}
   m_Layer: 10
   m_Name: EnemyController
   m_TagString: Untagged
@@ -288,9 +288,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabParent: {fileID: 1004073885087342027}
-  fighter: {fileID: 1606594478294605431}
+  fighter: {fileID: 1606205179468352702}
   cameraMount: {fileID: 732849040791205223}
---- !u!114 &1606594478294605431
+--- !u!114 &1606205179468352702
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -299,13 +299,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 6461433166509066347}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05640ed0cd329104989f3da6a80e2d30, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f9dd3f85a39aff4dbbea209f9b2777d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 15
   range: {fileID: 148060434060254791}
   damageResistances:
     Values:
-    - 0.1
+    - 1
     - 1
     - 1
     - 1
@@ -316,7 +317,7 @@ MonoBehaviour:
     - 1
   damageAttack:
     Values:
-    - 5
+    - 1
     - 0
     - 0
     - 0
@@ -329,5 +330,5 @@ MonoBehaviour:
   HPfill: {fileID: 0}
   CDfill: {fileID: 0}
   agent: {fileID: 1004073885087342007}
-  fighterName: Bad Boy
-  fighterIcon: {fileID: 0}
+  fighterName: Tortoise
+  fighterIcon: {fileID: 21300000, guid: 2aab2ec3414d76e458801fa5878466af, type: 3}

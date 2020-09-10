@@ -17,6 +17,7 @@ public class GridManager : MonoBehaviour
     List<GameObject> GridTowers = new List<GameObject>(); //active towers 1:1 with cells
     List<GameObject> GridEnemies = new List<GameObject>(); //active enemies
     List<NavMeshSurface> GridSurfaces = new List<NavMeshSurface>(); //list of surface components for different agents
+    
 
     //track queues by prefab ids in gamestate
     Dictionary<int, Queue<GameObject>> EnemyPools = new Dictionary<int, Queue<GameObject>>();
@@ -28,10 +29,12 @@ public class GridManager : MonoBehaviour
     public Transform EnemyParent;
     public Transform TowerParent;
     public Transform EffectsParent;
+    public Transform MainCameraParent;
 
     [Header("Path endpoints")]
     public Transform destination;
     public Transform spawnPoint;
+    Vector3 gridCenter = Vector3.zero;
 
     Ray ray;
     RaycastHit hit;
@@ -44,8 +47,8 @@ public class GridManager : MonoBehaviour
     WhereIs whereIsBuffer;
     GameObject gameObjectBuffer;
     NavMeshSurface navmeshSurfaceBuffer;
-
-    Fighter fighterInFocus;
+    CellManager selectedCell = null;
+    Fighter fighterInFocus = null;
 
     public List<ParticleSystem> particlePrefabs;
     Dictionary<string, Queue<ParticleSystem>> particleQueues = new Dictionary<string, Queue<ParticleSystem>>();
@@ -77,8 +80,8 @@ public class GridManager : MonoBehaviour
 
     void Start()
     {
-        GenerateGrid(7, 7);
-
+        Vector2Int gridSize = GameState.Instance.GetGridSize();
+        GenerateGrid(gridSize.x, gridSize.y);
     }
 
     // Update is called once per frame
@@ -89,10 +92,14 @@ public class GridManager : MonoBehaviour
         {
             if (Physics.Raycast(ray, out hit, 1000f, FighterVision - 5)) //-1 to invert mask, -4 to ignore raycast
             {
+                SelectActiveCell(false);
+
                 if (hit.collider.gameObject.GetComponent<CellManager>() != null)
                 {
-                    cellController = hit.collider.gameObject.GetComponent<CellManager>().controller;
+                    selectedCell = hit.collider.gameObject.GetComponent<CellManager>();
+                    cellController = selectedCell.controller;
                     UIManager.Instance.BuildUI(cellController);
+                    selectedCell.Selected(true);
                     //TODO controller calls build UI
                 }
 
@@ -141,18 +148,25 @@ public class GridManager : MonoBehaviour
             StartCoroutine(CheckGridGeneration(GridSurfaces.Count - 1));
 
         }
-
-
-
-        GridParent.position = new Vector3(-0.5f * gridX * 10f, 0, -0.5f * gridZ * 10f);
+        
+        GridParent.position = new Vector3(-0.5f * gridX * 10f, 0, -0.4f * gridZ * 10f);
+        gridCenter = Vector3.zero;
 
         spawnPoint.localPosition = GridCells[0].transform.localPosition;
         destination.localPosition = GridCells[GridCells.Count - 1].transform.localPosition;
+        GameState.Instance.PlaceCore();
+        MainCameraParent.position = new Vector3(gridCenter.x, gridCenter.y + 140f, gridCenter.z);
+        MainCameraParent.rotation = Quaternion.Euler(90f,0,0);
     }
 
     public void InitializeWave(Queue<int> enemies)
     {
         currentWave = enemies;
+    }
+
+    public void SelectActiveCell(bool toggle)
+    {
+        if (selectedCell != null) selectedCell.Selected(toggle);
     }
 
     //getters
@@ -193,6 +207,7 @@ public class GridManager : MonoBehaviour
             GridTowers[cellController.GetGridReference()] = tower;
             cellController.SetTower(tower.GetComponentInChildren<Tower>().GetGameStateID());
 
+            SelectActiveCell(false);
             UIManager.Instance.TrackFighter(towerBuffer, whereIsBuffer, true);
             towerBuffer.ToggleInFocus(true);
         }
@@ -217,11 +232,15 @@ public class GridManager : MonoBehaviour
     //fires on every enemy death
     public void CheckWaveEnd()
     {
-        Debug.Log(GridEnemies.Count);
         if (GridEnemies.Count == 0)
         {
             GameState.Instance.NextWave();
         }
+    }
+
+    public void ParentToGrid(GameObject gameObject)
+    {
+        gameObject.transform.SetParent(GridParent);
     }
 
     public bool SpawnEnemy()

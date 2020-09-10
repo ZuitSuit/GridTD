@@ -147,7 +147,7 @@ Transform:
   m_GameObject: {fileID: 6225434126482966587}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.3, y: 0.1, z: 0.1}
+  m_LocalScale: {x: 1, y: 0.1, z: 0.5}
   m_Children:
   - {fileID: 732849040791205223}
   m_Father: {fileID: 1004073885087342027}
@@ -302,6 +302,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05640ed0cd329104989f3da6a80e2d30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 3
   range: {fileID: 148060434060254791}
   damageResistances:
     Values:

@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public abstract class Fighter : MonoBehaviour
 {
     protected float currentHealth;
-    protected float maxHealth = 10f; //default HP value
+    public float maxHealth = 10f; //default HP value
     protected int price = 10; // tower price or enemy payout
     protected GameObject currentTarget;
     public SphereCollider range; //collider used for tracking visible targets
@@ -372,8 +372,9 @@ public abstract class Fighter : MonoBehaviour
         {
             if (effect.GetType() == typeof(BufferStatus))
             {
+                //buffer shields get used up on an attack
                 effect.TickDown(1);
-
+                
                 return false;
             }
 
@@ -557,6 +558,7 @@ public abstract class Fighter : MonoBehaviour
     public virtual void AddStatusEffect<T>(int amount) where T:StatusEffect
     {
         effectBuffer = null;
+        
         foreach (StatusEffect effect in statusEffects)
         {
             if (effect.GetType() == typeof(T)) effectBuffer = effect;

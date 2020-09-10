@@ -16,7 +16,8 @@ public abstract class StatusEffect
         fighter = f;
         interval = i;
         ticks = t;
-        if (i < 0) infinite = true; 
+
+        if (i < 0) infinite = true;
     }
 
     public void Init(Fighter f, int t = 1, float i = 1.0f)
@@ -25,7 +26,6 @@ public abstract class StatusEffect
         interval = i;
         ticks = t;
         if (i < 0) infinite = true;
-        
     }
 
     public virtual bool Tick()
